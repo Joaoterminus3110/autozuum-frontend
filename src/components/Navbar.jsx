@@ -2,11 +2,10 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
   return (
     <nav style={styles.nav}>
       <div style={styles.brand} onClick={() => onNavigate("home")}>
-        🚗 AutoZuum
+         AutoZuum
       </div>
 
       <div style={styles.links}>
-        <button style={styles.link} onClick={() => onNavigate("home")}>Vitrine</button>
         {currentUser && (
           <button style={styles.link} onClick={() => onNavigate("new-vehicle")}>
             + Anunciar

@@ -95,8 +95,8 @@ const s = {
   label: { fontSize: 12, color: "#888", fontWeight: 500 },
   input: { background: "#1e2022", border: "1px solid #2a2c2f", color: "#f0f0ee", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" },
   hint: { fontSize: 11, color: "#555" },
-  btn: { background: "#e8ff3a", color: "#000", border: "none", borderRadius: 8, padding: "12px", fontWeight: 800, fontSize: 15, cursor: "pointer", marginTop: 4 },
+  btn: { background: "#3aff5b", color: "#000", border: "none", borderRadius: 8, padding: "12px", fontWeight: 800, fontSize: 15, cursor: "pointer", marginTop: 4 },
   error: { background: "rgba(255,69,69,0.12)", border: "1px solid rgba(255,69,69,0.3)", color: "#ff4545", borderRadius: 8, padding: "10px 14px", fontSize: 14, marginBottom: 12 },
   footer: { textAlign: "center", marginTop: "1.5rem", color: "#888", fontSize: 14 },
-  link: { color: "#e8ff3a", cursor: "pointer", textDecoration: "underline" },
+  link: { color: "#3aff65", cursor: "pointer", textDecoration: "underline" },
 };

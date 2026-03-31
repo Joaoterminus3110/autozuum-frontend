@@ -14,7 +14,6 @@ function HeroBanner({ onNavigate, currentUser }) {
         <div style={s.grid} />
       </div>
       <div style={s.heroContent}>
-        <p style={s.eyebrow}>AutoZuum </p>
         <h1 style={s.heroTitle}>
           O carro dos seus<br />
           <span style={{ color: "#fdfdfd" }}>sonhos está aqui.</span>
