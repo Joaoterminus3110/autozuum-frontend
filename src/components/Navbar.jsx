@@ -59,7 +59,7 @@ const styles = {
     padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontWeight: 700,
   },
   btnSolid: {
-    background: "#1a6b1a", border: "1px solid #3affb0", color: "#3affb0",
+    background: "#044040", border: "1px solid #044040", color: "#f9fefe",
     padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontWeight: 700,
   },
   btnRed: {

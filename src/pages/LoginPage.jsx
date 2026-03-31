@@ -81,7 +81,7 @@ const s = {
   form: { display: "flex", flexDirection: "column", gap: 12 },
   label: { fontSize: 12, color: "#888", fontWeight: 500 },
   input: { background: "#1e2022", border: "1px solid #2a2c2f", color: "#f0f0ee", borderRadius: 8, padding: "10px 14px", fontSize: 14, outline: "none" },
-  btn: { background: "#1a6b1a", color: "#3affb0", border: "1px solid #3affb0", borderRadius: 8, padding: "12px", fontWeight: 800, fontSize: 15, cursor: "pointer", marginTop: 4 },
+  btn: { background: "#044040", color: "#3affb0", border: "1px solid #3affb0", borderRadius: 8, padding: "12px", fontWeight: 800, fontSize: 15, cursor: "pointer", marginTop: 4 },
   error: { background: "rgba(255,69,69,0.12)", border: "1px solid rgba(255,69,69,0.3)", color: "#ff4545", borderRadius: 8, padding: "10px 14px", fontSize: 14, marginBottom: 12 },
   footer: { textAlign: "center", marginTop: "1.5rem", color: "#888", fontSize: 14 },
   link: { color: "#ff4545", cursor: "pointer", textDecoration: "underline" },

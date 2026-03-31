@@ -175,7 +175,7 @@ export default function Home({ onNavigate, currentUser }) {
       </main>
 
       <footer style={s.footer}>
-        <span style={{ color: "#ff4545", fontWeight: 800 }}>🚗 AutoZumm</span>
+        <span style={{ color: "#ff4545", fontWeight: 800 }}> AutoZumm</span>
         <span style={{ color: "#555", fontSize: 13 }}>© {new Date().getFullYear()} — Todos os direitos reservados</span>
       </footer>
     </div>
@@ -233,22 +233,21 @@ const s = {
     borderRadius: 999, padding: "3px 12px", fontSize: 12, color: "#888",
   },
 
-  // Grid
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.25rem" },
 
-  // Skeleton
+  
   skeleton: { background: "#161719", border: "1px solid #2a2c2f", borderRadius: 16, overflow: "hidden" },
   skeletonImg: { height: 190, background: "linear-gradient(90deg, #1e2022 25%, #2a2c2f 50%, #1e2022 75%)", backgroundSize: "600px 100%", animation: "shimmer 1.4s infinite linear" },
   skeletonLine: { height: 12, borderRadius: 6, background: "linear-gradient(90deg, #1e2022 25%, #2a2c2f 50%, #1e2022 75%)", backgroundSize: "600px 100%", animation: "shimmer 1.4s infinite linear" },
 
-  // States
+  
   stateError: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "4rem 2rem", color: "#ff4545", textAlign: "center" },
   stateEmpty: { gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "4rem 2rem", color: "#888", textAlign: "center" },
 
-  // Buttons
+
   btnGreen: {
-    background: "#1a6b1a", color: "#3affb0",
-    border: "1px solid #3affb0", borderRadius: 8,
+    background: "#044040", color: "#f9fefe",
+    border: "1px solid #044040", borderRadius: 8,
     padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 14,
   },
   btnOutline: {
@@ -257,7 +256,7 @@ const s = {
     padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 14,
   },
 
-  // Footer
+  
   footer: {
     borderTop: "1px solid #1e2022", display: "flex",
     justifyContent: "space-between", alignItems: "center",

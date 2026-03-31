@@ -55,6 +55,6 @@ const styles = {
   sub: { fontSize: 12, color: "#888", marginBottom: 4 },
   engine: { fontSize: 12, color: "#555", marginBottom: 10 },
   footer: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  price: { fontWeight: 800, color: "#3aff5e", fontSize: "1rem" },
+  price: { fontWeight: 800, color:"#044040", fontSize: "1rem" },
   seller: { fontSize: 11, color: "#555" },
 };
