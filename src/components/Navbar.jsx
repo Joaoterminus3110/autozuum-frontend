@@ -2,9 +2,8 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
   return (
     <nav style={styles.nav}>
       <div style={styles.brand} onClick={() => onNavigate("home")}>
-         AutoZuum
-      </div>
-
+  <img src="/logofull2.png" alt="AutoZoom" style={{ height: 165, width: 350, objectFit: "contain" }} />
+</div>
       <div style={styles.links}>
         {currentUser && (
           <button style={styles.link} onClick={() => onNavigate("new-vehicle")}>
@@ -46,8 +45,9 @@ const styles = {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "0 2rem", height: 64, background: "#111",
     borderBottom: "1px solid #222", position: "sticky", top: 0, zIndex: 100,
+  
   },
-  brand: { fontWeight: 800, fontSize: "1.2rem", color: "#ff4545", cursor: "pointer" },
+  brand: { cursor: "pointer", display: "flex", alignItems: "center" },
   links: { display: "flex", gap: 4 },
   link: {
     background: "none", border: "none", color: "#aaa",
