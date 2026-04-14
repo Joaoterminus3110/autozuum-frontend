@@ -1,0 +1,104 @@
+.page-container {
+  min-height: 100vh;
+  background-color: #0c0d0f;
+}
+
+.center-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+}
+
+.login-card {
+  background-color: #161719;
+  border: 1px solid #2a2c2f;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-title {
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: #f0f0ee;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-label {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
+}
+
+.form-input {
+  background-color: #1e2022;
+  border: 1px solid #2a2c2f;
+  color: #f0f0ee;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+/* Um pequeno extra de UX: a borda brilha quando o usuário clica no input */
+.form-input:focus {
+  border-color: #ff4545;
+}
+
+.submit-btn {
+  background-color: #044040;
+  color: #3affb0;
+  border: 1px solid #3affb0;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.2s;
+}
+
+/* Deixa o botão mais transparente quando estiver carregando */
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: rgba(255, 69, 69, 0.12);
+  border: 1px solid rgba(255, 69, 69, 0.3);
+  color: #ff4545;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #888;
+  font-size: 14px;
+}
+
+.footer-link {
+  color: #ff4545;
+  cursor: pointer;
+  text-decoration: underline;
+}
