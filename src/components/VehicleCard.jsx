@@ -2,10 +2,12 @@ import { getImageUrl } from "../servicos/api";
 import "./VehicleCard.css";
 
 export default function VehicleCard({ vehicle, onClick }) {
+  // 1. Verifica se o veículo tem alguma imagem no array e pega a primeira
   const thumb = vehicle.images?.[0]?.url
     ? getImageUrl(vehicle.images[0].url)
     : null;
 
+  // 2. Formata o preço para o padrão brasileiro
   const price = Number(vehicle.price).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -14,11 +16,16 @@ export default function VehicleCard({ vehicle, onClick }) {
   return (
     <div className="vehicle-card" onClick={onClick}>
       <div className="vehicle-card-img-box">
-        {thumb ? (
-          <img src={thumb} alt="" className="vehicle-card-img" />
-        ) : (
-          <div className="vehicle-card-no-img">Sem foto</div>
-        )}
+        {/* 🛡️ A Mágica do Fallback Aplicada */}
+        <img
+          src={thumb || "/fallback-autozoom.png"}
+          alt={`${vehicle.brand} ${vehicle.model}`}
+          className="vehicle-card-img"
+          onError={(e) => {
+            e.target.onerror = null; // Trava de segurança contra loop infinito
+            e.target.src = "/fallback-autozoom.png"; // Substitui a imagem quebrada
+          }}
+        />
 
         <span className="vehicle-card-badge">
           {vehicle.manufactureYear}/{vehicle.modelYear}

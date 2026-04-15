@@ -7,7 +7,6 @@ import {
   deleteVehicle,
 } from "../servicos/api";
 import api from "../servicos/api";
-import Navbar from "../components/Navbar";
 import "./VehicleFormPage.css";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -58,20 +57,33 @@ export default function VehicleFormPage() {
   const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
-    if (!currentUser) {
-      navigate("/login");
-      return;
-    }
+    // ❌ Aquela checagem de (!currentUser) foi apagada daqui!
 
+    // ✅ Se for modo Edição, vamos buscar os dados do carro:
     if (isEdit) {
       getVehicleById(vehicleId).then((v) => {
-        if (v && !v.error) {
-          setForm({ ...v, features: v.features || [] });
-          setImages(v.VehicleImages || []);
+        // 1. Se der erro na busca ou o carro não existir
+        if (!v || v.error) {
+          setError("Veículo não encontrado.");
+          return;
         }
+
+        // 🛡️ 2. A TRAVA DE AUTORIZAÇÃO
+        // Se o dono do carro for diferente do cara logado:
+        if (String(v.userId) !== String(currentUser?.id)) {
+          alert(
+            "Acesso negado: Você não tem permissão para editar este anúncio.",
+          );
+          navigate("/"); // Expulsa o intruso para a Home
+          return;
+        }
+
+        // 3. Se passou pela segurança, o carro é seu! Preenchemos o painel:
+        setForm({ ...v, features: v.features || [] });
+        setImages(v.VehicleImages || []);
       });
     }
-  }, [currentUser, isEdit, navigate, vehicleId]);
+  }, [isEdit, vehicleId, currentUser, navigate]);
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -98,6 +110,7 @@ export default function VehicleFormPage() {
         mileage: Number(form.mileage),
         manufactureYear: Number(form.manufactureYear),
         modelYear: Number(form.modelYear),
+        userId: currentUser?.id,
       };
 
       const res = isEdit
@@ -112,7 +125,7 @@ export default function VehicleFormPage() {
       if (!isEdit && res.vehicle?.id) {
         setSavedVehicleId(res.vehicle.id);
       } else {
-        navigate("/home");
+        navigate(`/veiculo/${vehicleId}`);
       }
     } catch {
       setError("Erro ao salvar.");
@@ -161,9 +174,24 @@ export default function VehicleFormPage() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Excluir este anúncio?")) return;
-    await deleteVehicle(vehicleId);
-    navigate("/home");
+    // 🚩 Alerta de segurança para evitar cliques acidentais
+    const confirmacao = window.confirm(
+      `Tem certeza que deseja excluir o seu ${form.brand} ${form.model}? Esta ação não pode ser desfeita.`,
+    );
+
+    if (confirmacao) {
+      try {
+        setLoading(true);
+        await deleteVehicle(vehicleId);
+
+        // 🚀 Sucesso! Manda de volta para o pátio de carros do usuário
+        navigate(`/perfil/${currentUser.id}`);
+      } catch (err) {
+        alert("Erro ao excluir o veículo. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   if (savedVehicleId && !isEdit) {

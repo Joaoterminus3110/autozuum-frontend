@@ -32,7 +32,6 @@ export default function VehicleDetailPage() {
   const [propError, setPropError] = useState("");
   const [propSuccess, setPropSuccess] = useState("");
 
-  const isLoggedIn = !!currentUser;
   const isOwner =
     currentUser && vehicle && String(currentUser.id) === String(vehicle.userId);
 
@@ -44,16 +43,33 @@ export default function VehicleDetailPage() {
   }, [vehicleId]);
 
   useEffect(() => {
-    if (isOwner) getProposalsByVehicle(vehicleId).then(setProposals);
+    if (isOwner)
+      getProposalsByVehicle(vehicleId).then((res) => {
+        console.log("👀 RAIO-X DAS PROPOSTAS:", res);
+        setProposals(res);
+      });
   }, [isOwner, vehicleId]);
 
   useEffect(() => {
     if (currentUser && showForm) {
-      getVehicles().then((all) =>
+      getVehicles().then((res) => {
+        // 1. O Adaptador: Pega a lista esteja ela solta ou dentro de res.vehicles
+        const vehiclesArray =
+          res && Array.isArray(res.vehicles)
+            ? res.vehicles
+            : Array.isArray(res)
+              ? res
+              : [];
+
+        // 2. Agora sim, aplicamos o filtro (com aquela blindagem de String que fizemos)
         setMyVehicles(
-          all.filter((v) => v.userId === currentUser.id && v.id !== vehicleId),
-        ),
-      );
+          vehiclesArray.filter(
+            (v) =>
+              String(v.userId) === String(currentUser.id) &&
+              String(v.id) !== String(vehicleId),
+          ),
+        );
+      });
     }
   }, [currentUser, showForm, vehicleId]);
 
@@ -112,15 +128,21 @@ export default function VehicleDetailPage() {
       <div className="vehicle-detail-layout">
         <div>
           <div className="vehicle-detail-img-main">
-            {images.length > 0 ? (
-              <img
-                src={getImageUrl(images[imgIndex].url)}
-                alt=""
-                className="vehicle-detail-main-image"
-              />
-            ) : (
-              <div className="vehicle-detail-no-img">Sem fotos</div>
-            )}
+            {/* 1. IMAGEM PRINCIPAL */}
+            <img
+              // Se houver imagens, pega a do índice atual. Se não, mostra o fallback direto.
+              src={
+                images.length > 0
+                  ? getImageUrl(images[imgIndex].url)
+                  : "/fallback-autozoom.png"
+              }
+              alt={`${vehicle.brand} ${vehicle.model}`}
+              className="vehicle-detail-main-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/fallback-autozoom.png";
+              }}
+            />
 
             {images.length > 1 && (
               <div className="vehicle-detail-nav-row">
@@ -153,11 +175,16 @@ export default function VehicleDetailPage() {
                 <img
                   key={img.id}
                   src={getImageUrl(img.url)}
-                  alt=""
+                  alt={`Foto ${i + 1} de ${vehicle.model}`}
                   onClick={() => setImgIndex(i)}
                   className={`vehicle-detail-thumb ${
                     i === imgIndex ? "vehicle-detail-thumb-active" : ""
                   }`}
+                  // Fallback para caso uma miniatura específica quebre
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/fallback-autozoom.png";
+                  }}
                 />
               ))}
             </div>
@@ -334,22 +361,22 @@ export default function VehicleDetailPage() {
             <div
               key={p.id}
               className={`vehicle-detail-prop-card ${
-                p.status === "ACEITO"
+                p.status === "ACCEPTED"
                   ? "vehicle-detail-prop-card-accepted"
-                  : p.status === "RECUSADA"
+                  : p.status === "REJECTED"
                     ? "vehicle-detail-prop-card-rejected"
                     : ""
               }`}
             >
               <div className="vehicle-detail-prop-top">
                 <strong className="vehicle-detail-prop-user">
-                  {p.User?.name}
+                  {p.User?.name || "Comprador"}
                 </strong>
                 <span
                   className={`vehicle-detail-prop-status ${
-                    p.status === "ACEITO"
+                    p.status === "ACCEPTED"
                       ? "status-accepted"
-                      : p.status === "RECUSADA"
+                      : p.status === "REJECTED"
                         ? "status-rejected"
                         : "status-pending"
                   }`}
@@ -358,30 +385,46 @@ export default function VehicleDetailPage() {
                 </span>
               </div>
 
-              <p className="vehicle-detail-prop-price">
-                {Number(p.cashOffer).toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </p>
+              {/* 1. Valor em Dinheiro */}
+              {p.cashOffer > 0 && (
+                <p className="vehicle-detail-prop-price">
+                  💰{" "}
+                  {Number(p.cashOffer).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+              )}
 
+              {/* 2. INJEÇÃO AQUI: Veículo na Troca */}
+              {p.offeredVehicle && (
+                <p className="vehicle-detail-prop-message">
+                  {" "}
+                  {/* Usando a mesma classe de texto pra não quebrar seu layout */}
+                  🚗 <strong>Troca:</strong> {p.offeredVehicle.brand}{" "}
+                  {p.offeredVehicle.model} ({p.offeredVehicle.manufactureYear})
+                </p>
+              )}
+
+              {/* 3. Mensagem */}
               {p.message && (
                 <p className="vehicle-detail-prop-message">"{p.message}"</p>
               )}
 
-              {p.status === "PENDENTE" && (
+              {/* 4. Seus Botões de Ação */}
+              {p.status === "PENDING" && (
                 <div className="vehicle-detail-prop-actions">
                   <button
                     className="vehicle-detail-btn-green"
-                    onClick={() => handleStatus(p.id, "ACEITO")}
+                    onClick={() => handleStatus(p.id, "ACCEPTED")}
                   >
                     ✓ Aceitar
                   </button>
                   <button
                     className="vehicle-detail-btn-red"
-                    onClick={() => handleStatus(p.id, "RECUSADA")}
+                    onClick={() => handleStatus(p.id, "REJECTED")}
                   >
-                    ✗ Recusar
+                    X Recusar
                   </button>
                 </div>
               )}
