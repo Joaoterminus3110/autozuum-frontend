@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -7,42 +9,61 @@ import VehicleFormPage from "./pages/VehicleFormPage";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
-  const [page, setPage] = useState("home");
-  const [pageParams, setPageParams] = useState({});
+  // Mantemos o usuário aqui por enquanto (no próximo passo vai virar Contexto Global)
   const [currentUser, setCurrentUser] = useState(null);
-
-  const navigate = (target, params = {}) => {
-    setPage(target);
-    setPageParams(params);
-    window.scrollTo(0, 0);
-  };
 
   const handleLogin = (user) => {
     setCurrentUser(user);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setCurrentUser(null);
-    navigate("home");
   };
 
-  const props = { onNavigate: navigate, currentUser };
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Rota principal */}
+        <Route path="/" element={<Home currentUser={currentUser} />} />
 
-  switch (page) {
-    case "login":
-      return <LoginPage {...props} onLogin={handleLogin} />;
-    case "register":
-      return <RegisterPage {...props} />;
-    case "vehicle-detail":
-      return <VehicleDetailPage {...props} vehicleId={pageParams.vehicleId} />;
-    case "new-vehicle":
-      return <VehicleFormPage {...props} vehicleId={null} />;
-    case "edit-vehicle":
-      return <VehicleFormPage {...props} vehicleId={pageParams.vehicleId} />;
-    case "profile":
-      return <ProfilePage {...props} userId={pageParams.userId} />;
-    default:
-      return <Home {...props} />;
-  }
+        {/* Rotas de Autenticação */}
+        <Route
+          path="/login"
+          element={
+            <LoginPage onLogin={handleLogin} currentUser={currentUser} />
+          }
+        />
+        <Route
+          path="/register"
+          element={<RegisterPage currentUser={currentUser} />}
+        />
+
+        {/* Rotas de Veículos (Note o ":id", ele substitui o seu pageParams!) */}
+        <Route
+          path="/veiculo/:id"
+          element={<VehicleDetailPage currentUser={currentUser} />}
+        />
+        <Route
+          path="/anunciar"
+          element={<VehicleFormPage currentUser={currentUser} />}
+        />
+        <Route
+          path="/editar-veiculo/:id"
+          element={<VehicleFormPage currentUser={currentUser} />}
+        />
+
+        {/* Rota de Perfil */}
+        <Route
+          path="/perfil/:id"
+          element={
+            <ProfilePage currentUser={currentUser} onLogout={handleLogout} />
+          }
+        />
+
+        {/* Rota de fallback (Se digitar uma URL que não existe, manda pra Home) */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
