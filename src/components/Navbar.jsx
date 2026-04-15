@@ -1,12 +1,22 @@
+import "./Navbar.css";
+
 export default function Navbar({ onNavigate, currentUser, onLogout }) {
   return (
-    <nav style={styles.nav}>
-      <div style={styles.brand} onClick={() => onNavigate("home")}>
-  <img src="/logofull2.png" alt="AutoZoom" style={{ height: 165, width: 350, objectFit: "contain" }} />
-</div>
-      <div style={styles.links}>
+    <nav className="navbar">
+      <div className="navbar-brand" onClick={() => onNavigate("home")}>
+        <img
+          src="/logofull2.png"
+          alt="AutoZoom"
+          className="navbar-logo"
+        />
+      </div>
+
+      <div className="navbar-links">
         {currentUser && (
-          <button style={styles.link} onClick={() => onNavigate("new-vehicle")}>
+          <button
+            className="navbar-link"
+            onClick={() => onNavigate("new-vehicle")}
+          >
             + Anunciar
           </button>
         )}
@@ -14,23 +24,31 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
 
       <div>
         {currentUser ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="navbar-user-actions">
             <span
-              style={styles.userBtn}
+              className="navbar-user-btn"
               onClick={() => onNavigate("profile", { userId: currentUser.id })}
             >
               👤 {currentUser.name?.split(" ")[0]}
             </span>
-            <button style={styles.btnRed} onClick={onLogout}>
+
+            <button className="navbar-btn-red" onClick={onLogout}>
               Sair
             </button>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8 }}>
-            <button style={styles.btnOutline} onClick={() => onNavigate("login")}>
+          <div className="navbar-auth-actions">
+            <button
+              className="navbar-btn-outline"
+              onClick={() => onNavigate("login")}
+            >
               Entrar
             </button>
-            <button style={styles.btnSolid} onClick={() => onNavigate("register")}>
+
+            <button
+              className="navbar-btn-solid"
+              onClick={() => onNavigate("register")}
+            >
               Cadastrar
             </button>
           </div>
@@ -39,31 +57,3 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
     </nav>
   );
 }
-
-const styles = {
-  nav: {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "0 2rem", height: 64, background: "#111",
-    borderBottom: "1px solid #222", position: "sticky", top: 0, zIndex: 100,
-  
-  },
-  brand: { cursor: "pointer", display: "flex", alignItems: "center" },
-  links: { display: "flex", gap: 4 },
-  link: {
-    background: "none", border: "none", color: "#aaa",
-    padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 14,
-  },
-  userBtn: { color: "#aaa", cursor: "pointer", fontSize: 14, padding: "6px 14px", borderRadius: 8 },
-  btnOutline: {
-    background: "none", border: "1px solid #ff4545", color: "#ff4545",
-    padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontWeight: 700,
-  },
-  btnSolid: {
-    background: "#044040", border: "1px solid #044040", color: "#f9fefe",
-    padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontWeight: 700,
-  },
-  btnRed: {
-    background: "rgba(255,69,69,0.15)", border: "1px solid #ff4545", color: "#ff4545",
-    padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13,
-  },
-};

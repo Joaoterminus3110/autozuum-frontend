@@ -1,4 +1,5 @@
 import { getImageUrl } from "../servicos/api";
+import "./VehicleCard.css";
 
 export default function VehicleCard({ vehicle, onClick }) {
   const thumb = vehicle.VehicleImages?.[0]?.url
@@ -6,55 +7,44 @@ export default function VehicleCard({ vehicle, onClick }) {
     : null;
 
   const price = Number(vehicle.price).toLocaleString("pt-BR", {
-    style: "currency", currency: "BRL",
+    style: "currency",
+    currency: "BRL",
   });
 
   return (
-    <div style={styles.card} onClick={onClick}>
-      <div style={styles.imgBox}>
+    <div className="vehicle-card" onClick={onClick}>
+      <div className="vehicle-card-img-box">
         {thumb ? (
-          <img src={thumb} alt="" style={styles.img} />
+          <img src={thumb} alt="" className="vehicle-card-img" />
         ) : (
-          <div style={styles.noImg}>Sem foto</div>
+          <div className="vehicle-card-no-img">Sem foto</div>
         )}
-        <span style={styles.badge}>
+
+        <span className="vehicle-card-badge">
           {vehicle.manufactureYear}/{vehicle.modelYear}
         </span>
       </div>
-      <div style={styles.body}>
-        <h3 style={styles.title}>{vehicle.brand} {vehicle.model}</h3>
-        <p style={styles.sub}>{vehicle.location} · {vehicle.mileage?.toLocaleString("pt-BR")} km</p>
-        <p style={styles.engine}>{vehicle.engine} · {vehicle.transmission}</p>
-        <div style={styles.footer}>
-          <span style={styles.price}>{price}</span>
-          <span style={styles.seller}>{vehicle.User?.name?.split(" ")[0]}</span>
+
+      <div className="vehicle-card-body">
+        <h3 className="vehicle-card-title">
+          {vehicle.brand} {vehicle.model}
+        </h3>
+
+        <p className="vehicle-card-sub">
+          {vehicle.location} · {vehicle.mileage?.toLocaleString("pt-BR")} km
+        </p>
+
+        <p className="vehicle-card-engine">
+          {vehicle.engine} · {vehicle.transmission}
+        </p>
+
+        <div className="vehicle-card-footer">
+          <span className="vehicle-card-price">{price}</span>
+          <span className="vehicle-card-seller">
+            {vehicle.User?.name?.split(" ")[0]}
+          </span>
         </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  card: {
-    background: "#161719", border: "1px solid #2a2c2f", borderRadius: 16,
-    overflow: "hidden", cursor: "pointer", transition: "transform 0.2s",
-  },
-  imgBox: { position: "relative", height: 180, background: "#1e2022" },
-  img: { width: "100%", height: "100%", objectFit: "cover" },
-  noImg: {
-    height: "100%", display: "flex", alignItems: "center",
-    justifyContent: "center", color: "#555", fontSize: 13,
-  },
-  badge: {
-    position: "absolute", top: 8, right: 8,
-    background: "rgba(0,0,0,0.7)", color: "#aaa",
-    padding: "3px 10px", borderRadius: 20, fontSize: 11,
-  },
-  body: { padding: "12px 14px" },
-  title: { fontSize: "1rem", fontWeight: 700, marginBottom: 4, color: "#f0f0ee" },
-  sub: { fontSize: 12, color: "#888", marginBottom: 4 },
-  engine: { fontSize: 12, color: "#555", marginBottom: 10 },
-  footer: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  price: { fontWeight: 800, color:"#044040", fontSize: "1rem" },
-  seller: { fontSize: 11, color: "#555" },
-};

@@ -1,0 +1,266 @@
+.profile-page {
+  min-height: 100vh;
+  background: #0c0d0f;
+}
+
+.profile-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 64px);
+  color: #888;
+}
+
+.profile-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+}
+
+.profile-sidebar {
+  background: #161719;
+  border: 1px solid #2a2c2f;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: fit-content;
+}
+
+.avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #044040;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 30px;
+}
+
+.avatar-sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #044040;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.profile-name {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #f0f0ee;
+  text-align: center;
+}
+
+.profile-sub {
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+}
+
+.profile-rating-box {
+  text-align: center;
+}
+
+.profile-stars {
+  color: #ffc940;
+  font-size: 1.2rem;
+}
+
+.profile-rating-text {
+  color: #888;
+  font-size: 12px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #2a2c2f;
+  margin-bottom: 1.5rem;
+}
+
+.profile-tab {
+  background: none;
+  border: none;
+  color: #888;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.profile-tab-active {
+  color: #044040;
+  border-bottom-color: #5bff3a;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.profile-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem;
+  color: #888;
+}
+
+.profile-empty-btn {
+  margin-top: 12px;
+}
+
+.review-card {
+  background: #161719;
+  border: 1px solid #2a2c2f;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.reviewer-name {
+  color: #f0f0ee;
+}
+
+.review-stars {
+  margin-left: auto;
+  color: #ffc940;
+}
+
+.review-comment {
+  color: #888;
+  font-size: 13px;
+}
+
+.review-form {
+  background: #161719;
+  border: 1px solid #2a2c2f;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-top: 16px;
+}
+
+.review-form-title {
+  color: #f0f0ee;
+  margin-bottom: 12px;
+}
+
+.profile-input {
+  background: #1e2022;
+  border: 1px solid #2a2c2f;
+  color: #f0f0ee;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+
+.profile-textarea {
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.profile-label {
+  font-size: 12px;
+  color: #888;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rating-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+}
+
+.star-btn-active {
+  color: #ffc940;
+}
+
+.btn {
+  background: #e8ff3a;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-outline {
+  background: none;
+  border: 1px solid #2a2c2f;
+  color: #888;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+}
+
+.msg-error {
+  background: rgba(255, 69, 69, 0.12);
+  border: 1px solid rgba(255, 69, 69, 0.3);
+  color: #ff4545;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.msg-success {
+  background: rgba(58, 255, 176, 0.1);
+  border: 1px solid rgba(58, 255, 176, 0.3);
+  color: #3affb0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -7,6 +7,7 @@ import {
 } from "../servicos/api";
 import api from "../servicos/api";
 import Navbar from "../components/Navbar";
+import "./VehicleFormPage.css";
 
 const FEATURES = [
   "Airbag",
@@ -26,14 +27,13 @@ const FEATURES = [
   "Alarme",
 ];
 
-const BASE = "http://localhost:3333";
-
 export default function VehicleFormPage({
   onNavigate,
   currentUser,
   vehicleId,
 }) {
   const isEdit = Boolean(vehicleId);
+
   const [form, setForm] = useState({
     brand: "",
     model: "",
@@ -47,11 +47,11 @@ export default function VehicleFormPage({
     description: "",
     features: [],
   });
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ─── Estados de imagem ────────────────────────────────────────────────────
-  const [images, setImages] = useState([]); // imagens já salvas no servidor
+  const [images, setImages] = useState([]);
   const [savedVehicleId, setSavedVehicleId] = useState(vehicleId || null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -61,6 +61,7 @@ export default function VehicleFormPage({
       onNavigate("login");
       return;
     }
+
     if (isEdit) {
       getVehicleById(vehicleId).then((v) => {
         if (v && !v.error) {
@@ -69,23 +70,26 @@ export default function VehicleFormPage({
         }
       });
     }
-  }, [vehicleId]);
+  }, [currentUser, isEdit, onNavigate, vehicleId]);
 
-  const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handle = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  const toggleFeature = (f) =>
+  const toggleFeature = (f) => {
     setForm((prev) => ({
       ...prev,
       features: prev.features.includes(f)
         ? prev.features.filter((x) => x !== f)
         : [...prev.features, f],
     }));
+  };
 
-  // ─── Salvar veículo ───────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const payload = {
         ...form,
@@ -94,15 +98,16 @@ export default function VehicleFormPage({
         manufactureYear: Number(form.manufactureYear),
         modelYear: Number(form.modelYear),
       };
+
       const res = isEdit
         ? await updateVehicle(vehicleId, payload)
         : await createVehicle(payload);
+
       if (res.error) {
         setError(res.error);
         return;
       }
 
-      // Guarda o ID do veículo recém criado para o upload de fotos
       if (!isEdit && res.vehicle?.id) {
         setSavedVehicleId(res.vehicle.id);
       } else {
@@ -115,36 +120,37 @@ export default function VehicleFormPage({
     }
   };
 
-  // ─── Upload de foto ───────────────────────────────────────────────────────
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !savedVehicleId) return;
 
     setUploadError("");
     setUploadLoading(true);
+
     try {
       const formData = new FormData();
-      formData.append("image", file); // nome do campo exigido pelo backend
+      formData.append("image", file);
 
       const res = await api.post(
         `/vehicles/${savedVehicleId}/images`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
-      // Adiciona a nova imagem na lista
       setImages((prev) => [...prev, res.data]);
     } catch {
       setUploadError("Erro ao enviar foto. Tente novamente.");
     } finally {
       setUploadLoading(false);
-      e.target.value = ""; // limpa o input para permitir reenvio
+      e.target.value = "";
     }
   };
 
-  // ─── Excluir foto ─────────────────────────────────────────────────────────
   const handleDeleteImage = async (imageId) => {
     if (!window.confirm("Excluir esta foto?")) return;
+
     try {
       await api.delete(`/vehicles/images/${imageId}`);
       setImages((prev) => prev.filter((img) => img.id !== imageId));
@@ -159,16 +165,20 @@ export default function VehicleFormPage({
     onNavigate("home");
   };
 
-  // ─── Se acabou de criar o veículo, mostra tela de upload ─────────────────
   if (savedVehicleId && !isEdit) {
     return (
-      <div style={s.page}>
+      <div className="vehicle-form-page">
         <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-        <div style={s.wrap}>
-          <div style={s.card}>
-            <div style={s.successBanner}>✅ Veículo publicado com sucesso!</div>
-            <h2 style={s.title}>Adicionar Fotos</h2>
-            <p style={{ color: "#888", fontSize: 14, marginBottom: "1.5rem" }}>
+
+        <div className="vehicle-form-wrap">
+          <div className="vehicle-form-card">
+            <div className="vehicle-form-success-banner">
+              ✅ Veículo publicado com sucesso!
+            </div>
+
+            <h2 className="vehicle-form-title">Adicionar Fotos</h2>
+
+            <p className="vehicle-form-upload-text">
               Adicione fotos do veículo para atrair mais compradores.
             </p>
 
@@ -181,7 +191,7 @@ export default function VehicleFormPage({
             />
 
             <button
-              style={{ ...s.btn, marginTop: "1.5rem", width: "100%" }}
+              className="vehicle-form-btn vehicle-form-btn-full"
               onClick={() => onNavigate("home")}
             >
               Concluir e ir para a Vitrine →
@@ -193,26 +203,29 @@ export default function VehicleFormPage({
   }
 
   return (
-    <div style={s.page}>
+    <div className="vehicle-form-page">
       <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-      <div style={s.wrap}>
-        <div style={s.card}>
-          <button style={s.back} onClick={() => onNavigate("home")}>
+
+      <div className="vehicle-form-wrap">
+        <div className="vehicle-form-card">
+          <button className="vehicle-form-back" onClick={() => onNavigate("home")}>
             ← Voltar
           </button>
-          <h2 style={s.title}>
+
+          <h2 className="vehicle-form-title">
             {isEdit ? "Editar Anúncio" : "Anunciar Veículo"}
           </h2>
 
-          {error && <div style={s.error}>{error}</div>}
+          {error && <div className="vehicle-form-error">{error}</div>}
 
-          <form onSubmit={handleSubmit} style={s.form}>
-            <p style={s.section}>Identificação</p>
-            <div style={s.row}>
-              <div style={s.group}>
-                <label style={s.label}>Marca *</label>
+          <form onSubmit={handleSubmit} className="vehicle-form-form">
+            <p className="vehicle-form-section">Identificação</p>
+
+            <div className="vehicle-form-row">
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Marca *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   name="brand"
                   placeholder="Toyota"
                   value={form.brand}
@@ -220,10 +233,11 @@ export default function VehicleFormPage({
                   required
                 />
               </div>
-              <div style={s.group}>
-                <label style={s.label}>Modelo *</label>
+
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Modelo *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   name="model"
                   placeholder="Corolla"
                   value={form.model}
@@ -232,11 +246,12 @@ export default function VehicleFormPage({
                 />
               </div>
             </div>
-            <div style={s.row}>
-              <div style={s.group}>
-                <label style={s.label}>Ano Fabricação *</label>
+
+            <div className="vehicle-form-row">
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Ano Fabricação *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   type="number"
                   name="manufactureYear"
                   placeholder="2020"
@@ -245,10 +260,11 @@ export default function VehicleFormPage({
                   required
                 />
               </div>
-              <div style={s.group}>
-                <label style={s.label}>Ano Modelo *</label>
+
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Ano Modelo *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   type="number"
                   name="modelYear"
                   placeholder="2021"
@@ -259,12 +275,13 @@ export default function VehicleFormPage({
               </div>
             </div>
 
-            <p style={s.section}>Mecânica</p>
-            <div style={s.row}>
-              <div style={s.group}>
-                <label style={s.label}>Motor *</label>
+            <p className="vehicle-form-section">Mecânica</p>
+
+            <div className="vehicle-form-row">
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Motor *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   name="engine"
                   placeholder="2.0 Turbo"
                   value={form.engine}
@@ -272,10 +289,11 @@ export default function VehicleFormPage({
                   required
                 />
               </div>
-              <div style={s.group}>
-                <label style={s.label}>Câmbio *</label>
+
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Câmbio *</label>
                 <select
-                  style={s.input}
+                  className="vehicle-form-input"
                   name="transmission"
                   value={form.transmission}
                   onChange={handle}
@@ -286,11 +304,12 @@ export default function VehicleFormPage({
                 </select>
               </div>
             </div>
-            <div style={s.row}>
-              <div style={s.group}>
-                <label style={s.label}>Quilometragem *</label>
+
+            <div className="vehicle-form-row">
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Quilometragem *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   type="number"
                   name="mileage"
                   placeholder="50000"
@@ -299,10 +318,11 @@ export default function VehicleFormPage({
                   required
                 />
               </div>
-              <div style={s.group}>
-                <label style={s.label}>Preço (R$) *</label>
+
+              <div className="vehicle-form-group">
+                <label className="vehicle-form-label">Preço (R$) *</label>
                 <input
-                  style={s.input}
+                  className="vehicle-form-input"
                   type="number"
                   name="price"
                   placeholder="45000"
@@ -313,11 +333,12 @@ export default function VehicleFormPage({
               </div>
             </div>
 
-            <p style={s.section}>Localização & Descrição</p>
-            <div style={s.group}>
-              <label style={s.label}>Cidade/Estado *</label>
+            <p className="vehicle-form-section">Localização & Descrição</p>
+
+            <div className="vehicle-form-group">
+              <label className="vehicle-form-label">Cidade/Estado *</label>
               <input
-                style={s.input}
+                className="vehicle-form-input"
                 name="location"
                 placeholder="Campo Mourão - PR"
                 value={form.location}
@@ -325,10 +346,11 @@ export default function VehicleFormPage({
                 required
               />
             </div>
-            <div style={s.group}>
-              <label style={s.label}>Descrição *</label>
+
+            <div className="vehicle-form-group">
+              <label className="vehicle-form-label">Descrição *</label>
               <textarea
-                style={{ ...s.input, resize: "vertical" }}
+                className="vehicle-form-input vehicle-form-textarea"
                 name="description"
                 rows={4}
                 placeholder="Estado do veículo, histórico..."
@@ -338,19 +360,21 @@ export default function VehicleFormPage({
               />
             </div>
 
-            <p style={s.section}>Opcionais</p>
-            <div style={s.features}>
+            <p className="vehicle-form-section">Opcionais</p>
+
+            <div className="vehicle-form-features">
               {FEATURES.map((f) => (
                 <label
                   key={f}
-                  style={{
-                    ...s.featureTag,
-                    ...(form.features.includes(f) ? s.featureActive : {}),
-                  }}
+                  className={`vehicle-form-feature-tag ${
+                    form.features.includes(f)
+                      ? "vehicle-form-feature-active"
+                      : ""
+                  }`}
                 >
                   <input
                     type="checkbox"
-                    style={{ display: "none" }}
+                    className="vehicle-form-hidden-checkbox"
                     checked={form.features.includes(f)}
                     onChange={() => toggleFeature(f)}
                   />
@@ -359,10 +383,10 @@ export default function VehicleFormPage({
               ))}
             </div>
 
-            {/* Fotos no modo edição */}
             {isEdit && (
               <>
-                <p style={s.section}>Fotos</p>
+                <p className="vehicle-form-section">Fotos</p>
+
                 <ImageSection
                   images={images}
                   onUpload={handleUpload}
@@ -373,22 +397,27 @@ export default function VehicleFormPage({
               </>
             )}
 
-            <div style={s.actions}>
+            <div className="vehicle-form-actions">
               {isEdit && (
                 <button
                   type="button"
-                  style={s.btnDanger}
+                  className="vehicle-form-btn-danger"
                   onClick={handleDelete}
                 >
                   Excluir Anúncio
                 </button>
               )}
-              <button type="submit" style={s.btn} disabled={loading}>
+
+              <button
+                type="submit"
+                className="vehicle-form-btn"
+                disabled={loading}
+              >
                 {loading
                   ? "Salvando..."
                   : isEdit
-                    ? "Salvar"
-                    : "Publicar e Adicionar Fotos →"}
+                  ? "Salvar"
+                  : "Publicar e Adicionar Fotos →"}
               </button>
             </div>
           </form>
@@ -398,7 +427,6 @@ export default function VehicleFormPage({
   );
 }
 
-// ─── Componente de imagens ────────────────────────────────────────────────────
 function ImageSection({
   images,
   onUpload,
@@ -408,19 +436,21 @@ function ImageSection({
 }) {
   return (
     <div>
-      {uploadError && <div style={s.error}>{uploadError}</div>}
+      {uploadError && <div className="vehicle-form-error">{uploadError}</div>}
 
-      {/* Grid de fotos salvas */}
       {images.length > 0 && (
-        <div style={s.imgGrid}>
+        <div className="vehicle-form-img-grid">
           {images.map((img) => (
-            <div key={img.id} style={s.imgItem}>
+            <div key={img.id} className="vehicle-form-img-item">
               <img
                 src={`http://localhost:3333${img.url}`}
                 alt="foto do veículo"
-                style={s.imgThumb}
+                className="vehicle-form-img-thumb"
               />
-              <button style={s.imgDelete} onClick={() => onDelete(img.id)}>
+              <button
+                className="vehicle-form-img-delete"
+                onClick={() => onDelete(img.id)}
+              >
                 ✕
               </button>
             </div>
@@ -428,163 +458,20 @@ function ImageSection({
         </div>
       )}
 
-      {/* Botão de upload */}
-      <label style={s.uploadBtn}>
+      <label className="vehicle-form-upload-btn">
         {uploadLoading ? "Enviando..." : "📷 Adicionar Foto"}
         <input
           type="file"
           accept="image/*"
-          style={{ display: "none" }}
+          className="vehicle-form-file-input"
           onChange={onUpload}
           disabled={uploadLoading}
         />
       </label>
-      <p style={{ fontSize: 11, color: "#555", marginTop: 6 }}>
+
+      <p className="vehicle-form-upload-hint">
         Formatos aceitos: JPG, PNG, WEBP
       </p>
     </div>
   );
 }
-
-const s = {
-  page: { minHeight: "100vh", background: "#0c0d0f" },
-  wrap: { maxWidth: 720, margin: "0 auto", padding: "2rem" },
-  card: {
-    background: "#161719",
-    border: "1px solid #2a2c2f",
-    borderRadius: 16,
-    padding: "2.5rem",
-  },
-  back: {
-    background: "none",
-    border: "none",
-    color: "#888",
-    cursor: "pointer",
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  title: {
-    fontWeight: 800,
-    fontSize: "1.6rem",
-    color: "#f0f0ee",
-    marginBottom: "1.5rem",
-  },
-  form: { display: "flex", flexDirection: "column", gap: 14 },
-  section: {
-    fontWeight: 700,
-    fontSize: 12,
-    color: "#ff4545",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    marginTop: 8,
-  },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-  group: { display: "flex", flexDirection: "column", gap: 6 },
-  label: { fontSize: 12, color: "#888" },
-  input: {
-    background: "#1e2022",
-    border: "1px solid #2a2c2f",
-    color: "#f0f0ee",
-    borderRadius: 8,
-    padding: "10px 14px",
-    fontSize: 14,
-    outline: "none",
-    width: "100%",
-  },
-  features: { display: "flex", flexWrap: "wrap", gap: 8 },
-  featureTag: {
-    padding: "6px 12px",
-    borderRadius: 20,
-    border: "1px solid #2a2c2f",
-    color: "#888",
-    fontSize: 13,
-    cursor: "pointer",
-  },
-  featureActive: {
-    background: "rgba(255,69,69,0.1)",
-    borderColor: "rgba(255,69,69,0.4)",
-    color: "#ff4545",
-  },
-  actions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 10,
-    marginTop: 8,
-  },
-  btn: {
-    background: "#1a6b1a",
-    color: "#3affb0",
-    border: "1px solid #3affb0",
-    borderRadius: 8,
-    padding: "10px 24px",
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-  btnDanger: {
-    background: "rgba(255,69,69,0.15)",
-    color: "#ff4545",
-    border: "1px solid #ff4545",
-    borderRadius: 8,
-    padding: "10px 20px",
-    cursor: "pointer",
-  },
-  error: {
-    background: "rgba(255,69,69,0.12)",
-    border: "1px solid rgba(255,69,69,0.3)",
-    color: "#ff4545",
-    borderRadius: 8,
-    padding: "10px 14px",
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  successBanner: {
-    background: "rgba(58,255,176,0.1)",
-    border: "1px solid #3affb0",
-    color: "#3affb0",
-    borderRadius: 8,
-    padding: "12px 16px",
-    fontSize: 14,
-    marginBottom: "1.5rem",
-  },
-  imgGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-    gap: 10,
-    marginBottom: 12,
-  },
-  imgItem: {
-    position: "relative",
-    borderRadius: 8,
-    overflow: "hidden",
-    aspectRatio: "1/1",
-    background: "#1e2022",
-  },
-  imgThumb: { width: "100%", height: "100%", objectFit: "cover" },
-  imgDelete: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    background: "rgba(255,69,69,0.85)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "50%",
-    width: 22,
-    height: 22,
-    cursor: "pointer",
-    fontSize: 11,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  uploadBtn: {
-    display: "inline-block",
-    background: "#1e2022",
-    border: "1px dashed #2a2c2f",
-    color: "#888",
-    borderRadius: 8,
-    padding: "10px 20px",
-    cursor: "pointer",
-    fontSize: 14,
-    transition: "border-color 0.2s",
-  },
-};
