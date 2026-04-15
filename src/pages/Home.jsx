@@ -15,7 +15,8 @@ function HeroBanner({ onNavigate, currentUser }) {
 
       <div className="hero-content">
         <h1 className="hero-title">
-          O carro dos seus<br />
+          O carro dos seus
+          <br />
           <span>sonhos está aqui.</span>
         </h1>
 
@@ -25,7 +26,10 @@ function HeroBanner({ onNavigate, currentUser }) {
 
         {!currentUser && (
           <div className="hero-actions">
-            <button className="btn-green" onClick={() => onNavigate("register")}>
+            <button
+              className="btn-green"
+              onClick={() => onNavigate("register")}
+            >
               Criar Conta
             </button>
             <button className="btn-outline" onClick={() => onNavigate("login")}>
@@ -58,7 +62,9 @@ function FilterBar({ filters, setFilters, onSearch }) {
       <select
         className="filter-input"
         value={filters.transmission}
-        onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+        onChange={(e) =>
+          setFilters({ ...filters, transmission: e.target.value })
+        }
       >
         <option value="">Câmbio</option>
         <option value="Manual">Manual</option>
@@ -77,7 +83,9 @@ function FilterBar({ filters, setFilters, onSearch }) {
         <option value="newest">Mais recentes</option>
       </select>
 
-      <button className="btn-green" onClick={onSearch}>Buscar</button>
+      <button className="btn-green" onClick={onSearch}>
+        Buscar
+      </button>
     </div>
   );
 }
@@ -111,7 +119,7 @@ export default function Home({ onNavigate, currentUser }) {
     setError(null);
     try {
       const data = await getVehicles();
-      setVehicles(Array.isArray(data) ? data : []);
+      setVehicles(data && Array.isArray(data.vehicles) ? data.vehicles : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -130,17 +138,17 @@ export default function Home({ onNavigate, currentUser }) {
         q &&
         !v.brand.toLowerCase().includes(q) &&
         !v.model.toLowerCase().includes(q)
-      ) return false;
+      )
+        return false;
 
       if (
         filters.location &&
         !v.location.toLowerCase().includes(filters.location.toLowerCase())
-      ) return false;
+      )
+        return false;
 
-      if (
-        filters.transmission &&
-        v.transmission !== filters.transmission
-      ) return false;
+      if (filters.transmission && v.transmission !== filters.transmission)
+        return false;
 
       return true;
     })
@@ -148,7 +156,8 @@ export default function Home({ onNavigate, currentUser }) {
       if (filters.sort === "price_asc") return a.price - b.price;
       if (filters.sort === "price_desc") return b.price - a.price;
       if (filters.sort === "mileage_asc") return a.mileage - b.mileage;
-      if (filters.sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (filters.sort === "newest")
+        return new Date(b.createdAt) - new Date(a.createdAt);
       return 0;
     });
 
@@ -158,7 +167,11 @@ export default function Home({ onNavigate, currentUser }) {
       <HeroBanner onNavigate={onNavigate} currentUser={currentUser} />
 
       <main className="main">
-        <FilterBar filters={filters} setFilters={setFilters} onSearch={fetchVehicles} />
+        <FilterBar
+          filters={filters}
+          setFilters={setFilters}
+          onSearch={fetchVehicles}
+        />
 
         <div className="vitrine-header">
           <h2 className="vitrine-title">Veículos disponíveis</h2>
@@ -203,7 +216,9 @@ export default function Home({ onNavigate, currentUser }) {
                 <VehicleCard
                   key={v.id}
                   vehicle={v}
-                  onClick={() => onNavigate("vehicle-detail", { vehicleId: v.id })}
+                  onClick={() =>
+                    onNavigate("vehicle-detail", { vehicleId: v.id })
+                  }
                 />
               ))
             )}

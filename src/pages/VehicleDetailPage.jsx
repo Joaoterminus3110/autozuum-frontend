@@ -46,8 +46,8 @@ export default function VehicleDetailPage({
     if (currentUser && showForm) {
       getVehicles().then((all) =>
         setMyVehicles(
-          all.filter((v) => v.userId === currentUser.id && v.id !== vehicleId)
-        )
+          all.filter((v) => v.userId === currentUser.id && v.id !== vehicleId),
+        ),
       );
     }
   }, [currentUser, showForm, vehicleId]);
@@ -76,7 +76,7 @@ export default function VehicleDetailPage({
   const handleStatus = async (id, status) => {
     await updateProposalStatus(id, status);
     setProposals((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status } : p))
+      prev.map((p) => (p.id === id ? { ...p, status } : p)),
     );
   };
 
@@ -98,7 +98,7 @@ export default function VehicleDetailPage({
     );
   }
 
-  const images = vehicle.VehicleImages || [];
+  const images = vehicle.images || [];
   const price = Number(vehicle.price).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -254,7 +254,9 @@ export default function VehicleDetailPage({
             <div className="vehicle-detail-prop-form">
               <h4 className="vehicle-detail-form-title">Sua Proposta</h4>
 
-              {propError && <div className="vehicle-detail-error">{propError}</div>}
+              {propError && (
+                <div className="vehicle-detail-error">{propError}</div>
+              )}
               {propSuccess && (
                 <div className="vehicle-detail-success">{propSuccess}</div>
               )}
@@ -334,8 +336,8 @@ export default function VehicleDetailPage({
                 p.status === "ACEITO"
                   ? "vehicle-detail-prop-card-accepted"
                   : p.status === "RECUSADA"
-                  ? "vehicle-detail-prop-card-rejected"
-                  : ""
+                    ? "vehicle-detail-prop-card-rejected"
+                    : ""
               }`}
             >
               <div className="vehicle-detail-prop-top">
@@ -347,8 +349,8 @@ export default function VehicleDetailPage({
                     p.status === "ACEITO"
                       ? "status-accepted"
                       : p.status === "RECUSADA"
-                      ? "status-rejected"
-                      : "status-pending"
+                        ? "status-rejected"
+                        : "status-pending"
                   }`}
                 >
                   {p.status}

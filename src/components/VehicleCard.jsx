@@ -2,8 +2,8 @@ import { getImageUrl } from "../servicos/api";
 import "./VehicleCard.css";
 
 export default function VehicleCard({ vehicle, onClick }) {
-  const thumb = vehicle.VehicleImages?.[0]?.url
-    ? getImageUrl(vehicle.VehicleImages[0].url)
+  const thumb = vehicle.images?.[0]?.url
+    ? getImageUrl(vehicle.images[0].url)
     : null;
 
   const price = Number(vehicle.price).toLocaleString("pt-BR", {
@@ -41,7 +41,7 @@ export default function VehicleCard({ vehicle, onClick }) {
         <div className="vehicle-card-footer">
           <span className="vehicle-card-price">{price}</span>
           <span className="vehicle-card-seller">
-            {vehicle.User?.name?.split(" ")[0]}
+            {vehicle.user?.name?.split(" ")[0]}
           </span>
         </div>
       </div>

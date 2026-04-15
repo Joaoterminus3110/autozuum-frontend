@@ -1,34 +1,34 @@
-import axios from 'axios';
+import axios from "axios";
+
+export const API_BASE_URL = "http://localhost:3333";
 
 const api = axios.create({
-  baseURL: 'http://localhost:3333'
+  baseURL: API_BASE_URL,
 });
 
 // Coloca o token automaticamente em todas as requisições
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-export default api;
-
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 export async function login(email, password) {
-  const res = await api.post('/auth/login', { email, password });
+  const res = await api.post("/auth/login", { email, password });
   return res.data;
 }
 
 // ─── USERS ────────────────────────────────────────────────────────────────────
 export async function createUser(data) {
-  const res = await api.post('/users', data);
+  const res = await api.post("/users", data);
   return res.data;
 }
 
 export async function getAllUsers() {
-  const res = await api.get('/users');
+  const res = await api.get("/users");
   return res.data;
 }
 
@@ -48,7 +48,7 @@ export async function deleteUser(id) {
 
 // ─── VEHICLES ─────────────────────────────────────────────────────────────────
 export async function getVehicles() {
-  const res = await api.get('/vehicles');
+  const res = await api.get("/vehicles");
   return res.data;
 }
 
@@ -59,7 +59,7 @@ export async function getVehicleById(id) {
 
 export async function createVehicle(data) {
   // userId não precisa mais enviar, o backend pega pelo token
-  const res = await api.post('/vehicles', data);
+  const res = await api.post("/vehicles", data);
   return res.data;
 }
 
@@ -74,7 +74,7 @@ export async function deleteVehicle(id) {
 
 // ─── VEHICLE IMAGES ───────────────────────────────────────────────────────────
 export async function addVehicleImage(data) {
-  const res = await api.post('/images', data);
+  const res = await api.post("/images", data);
   return res.data;
 }
 
@@ -85,7 +85,7 @@ export async function deleteVehicleImage(id) {
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
 export async function createProposal(data) {
   // buyerId não precisa mais enviar, o backend pega pelo token
-  const res = await api.post('/proposals', data);
+  const res = await api.post("/proposals", data);
   return res.data;
 }
 
@@ -101,7 +101,7 @@ export async function updateProposalStatus(id, status) {
 
 // ─── REVIEWS ──────────────────────────────────────────────────────────────────
 export async function createReview(data) {
-  const res = await api.post('/reviews', data);
+  const res = await api.post("/reviews", data);
   return res.data;
 }
 
@@ -112,5 +112,14 @@ export async function getReviewsByUser(userId) {
 
 // ─── HELPER ───────────────────────────────────────────────────────────────────
 export function getImageUrl(filename) {
-  return `http://localhost:3333/${filename}`;
+  if (!filename) return null;
+
+  // Se o filename já vier com a "/", a gente tira ela para não duplicar
+  const cleanFilename = filename.startsWith("/")
+    ? filename.substring(1)
+    : filename;
+
+  return `${API_BASE_URL}/${cleanFilename}`;
 }
+
+export default api;
