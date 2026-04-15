@@ -2,7 +2,11 @@
   min-height: 100vh;
   background: #0c0d0f;
 }
-
+.register-field-error {
+  font-size: 11px;
+  color: #ff4545;
+  margin-top: 2px;
+}
 .register-center {
   display: flex;
   justify-content: center;
