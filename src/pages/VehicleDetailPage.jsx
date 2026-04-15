@@ -245,7 +245,7 @@ export default function VehicleDetailPage() {
           {isOwner && (
             <button
               className="vehicle-detail-btn-outline"
-              onClick={() => navigate(`/editar-anuncio/${vehicleId}`)}
+              onClick={() => navigate(`/editar-veiculo/${vehicleId}`)}
             >
               Editar Anúncio
             </button>

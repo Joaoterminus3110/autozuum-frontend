@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -9,6 +8,7 @@ import VehicleDetailPage from "./pages/VehicleDetailPage";
 import VehicleFormPage from "./pages/VehicleFormPage";
 import ProfilePage from "./pages/ProfilePage";
 import Navbar from "./components/Navbar";
+import PrivateRoute from "./routes/PrivateRoute";
 
 export default function App() {
   return (
@@ -16,22 +16,20 @@ export default function App() {
       <BrowserRouter>
         <Navbar />
         <Routes>
-          {/* Rota principal */}
+          {/* 🌍 Rotas Públicas (Qualquer um vê) */}
           <Route path="/" element={<Home />} />
-
-          {/* Rotas de Autenticação */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
-          {/* Rotas de Veículos (Note o ":id", ele substitui o seu pageParams!) */}
           <Route path="/veiculo/:id" element={<VehicleDetailPage />} />
-          <Route path="/anunciar" element={<VehicleFormPage />} />
-          <Route path="/editar-veiculo/:id" element={<VehicleFormPage />} />
-
-          {/* Rota de Perfil */}
           <Route path="/perfil/:id" element={<ProfilePage />} />
 
-          {/* Rota de fallback (Se digitar uma URL que não existe, manda pra Home) */}
+          {/* 🔒 Rotas Protegidas (SÓ para quem tem login) */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/anunciar" element={<VehicleFormPage />} />
+            <Route path="/editar-veiculo/:id" element={<VehicleFormPage />} />
+            {/* Qualquer rota que você colocar aqui dentro estará protegida automaticamente! */}
+          </Route>
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
