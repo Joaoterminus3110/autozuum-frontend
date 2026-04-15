@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   getUserById,
   getReviewsByUser,
@@ -6,13 +6,21 @@ import {
   createReview,
   updateUser,
 } from "../servicos/api";
-import Navbar from "../components/Navbar";
 import VehicleCard from "../components/VehicleCard";
 import "./ProfilePage.css";
+import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 
-export default function ProfilePage({ onNavigate, currentUser, userId }) {
-  const targetId = userId || currentUser?.id;
-  const isSelf = currentUser?.id === targetId;
+export default function ProfilePage() {
+  const navigate = useNavigate();
+  const { id } = useParams(); // ID do perfil que estamos visitando
+  const { currentUser } = useContext(AuthContext); // Usuário que está logado
+
+  // 1. Define quem é o dono deste perfil (Prioridade para o ID da URL)
+  const targetId = id || currentUser?.id;
+
+  // 2. Checagem única se o perfil é meu (usando String para evitar erro de tipo)
+  const isSelf = currentUser && String(currentUser.id) === String(targetId);
 
   const [user, setUser] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -20,35 +28,52 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
   const [tab, setTab] = useState("vehicles");
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({});
+  const [editForm, setEditForm] = useState({ name: "", phone: "", email: "" });
+
+  // States de Avaliação...
   const [revForm, setRevForm] = useState({ rating: 5, comment: "" });
   const [revError, setRevError] = useState("");
   const [revSuccess, setRevSuccess] = useState("");
 
   useEffect(() => {
-    if (!targetId) return;
+    if (!targetId) {
+      navigate("/login"); // Se não tem ID e não tá logado, tchau!
+      return;
+    }
+
+    setLoading(true);
 
     Promise.all([
       getUserById(targetId),
       getReviewsByUser(targetId),
-      getVehicles(),
-    ]).then(([u, r, v]) => {
-      setUser(u);
-      setReviews(Array.isArray(r) ? r : []);
-      setVehicles(Array.isArray(v) ? v.filter((x) => x.userId === targetId) : []);
-      setEditForm({
-        name: u.name,
-        phone: u.phone,
-        email: u.email,
+      getVehicles(), // Aqui pegamos todos...
+    ])
+      .then(([u, r, v]) => {
+        setUser(u);
+        setReviews(Array.isArray(r) ? r : []);
+
+        // 3. FILTRAGEM: Só mostra os veículos onde o dono é o cara do perfil
+        const allVehicles = v && Array.isArray(v.vehicles) ? v.vehicles : v;
+        const filtered = allVehicles.filter(
+          (veh) => String(veh.userId) === String(targetId),
+        );
+        setVehicles(filtered);
+
+        setEditForm({
+          name: u.name || "",
+          phone: u.phone || "",
+          email: u.email || "",
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar dados:", err);
+        navigate("/");
       });
-      setLoading(false);
-    });
-  }, [targetId]);
+  }, [targetId, navigate]);
 
   const avg = reviews.length
-    ? (
-        reviews.reduce((a, r) => a + r.rating, 0) / reviews.length
-      ).toFixed(1)
+    ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)
     : null;
 
   const handleReview = async (e) => {
@@ -84,7 +109,6 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
   if (loading) {
     return (
       <div className="profile-page">
-        <Navbar onNavigate={onNavigate} currentUser={currentUser} />
         <div className="profile-center">Carregando...</div>
       </div>
     );
@@ -92,13 +116,9 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
 
   return (
     <div className="profile-page">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-
       <div className="profile-layout">
         <aside className="profile-sidebar">
-          <div className="avatar-lg">
-            {user?.name?.[0]?.toUpperCase()}
-          </div>
+          <div className="avatar-lg">{user?.name?.[0]?.toUpperCase()}</div>
 
           {editing ? (
             <div className="edit-form">
@@ -129,10 +149,7 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
               <button className="btn" onClick={handleSave}>
                 Salvar
               </button>
-              <button
-                className="btn-outline"
-                onClick={() => setEditing(false)}
-              >
+              <button className="btn-outline" onClick={() => setEditing(false)}>
                 Cancelar
               </button>
             </div>
@@ -183,14 +200,14 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
             </button>
           </div>
 
-          {tab === "vehicles" && (
-            vehicles.length === 0 ? (
+          {tab === "vehicles" &&
+            (vehicles.length === 0 ? (
               <div className="profile-empty">
                 🚗 Nenhum anúncio ainda.
                 {isSelf && (
                   <button
                     className="btn profile-empty-btn"
-                    onClick={() => onNavigate("new-vehicle")}
+                    onClick={() => navigate("/anunciar")}
                   >
                     Anunciar agora
                   </button>
@@ -202,14 +219,11 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
                   <VehicleCard
                     key={v.id}
                     vehicle={v}
-                    onClick={() =>
-                      onNavigate("vehicle-detail", { vehicleId: v.id })
-                    }
+                    onClick={() => navigate(`/veiculo/${v.id}`)}
                   />
                 ))}
               </div>
-            )
-          )}
+            ))}
 
           {tab === "reviews" && (
             <div>
@@ -234,9 +248,7 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
                     </span>
                   </div>
 
-                  {r.comment && (
-                    <p className="review-comment">{r.comment}</p>
-                  )}
+                  {r.comment && <p className="review-comment">{r.comment}</p>}
                 </div>
               ))}
 
@@ -245,7 +257,9 @@ export default function ProfilePage({ onNavigate, currentUser, userId }) {
                   <h4 className="review-form-title">Deixar Avaliação</h4>
 
                   {revError && <div className="msg-error">{revError}</div>}
-                  {revSuccess && <div className="msg-success">{revSuccess}</div>}
+                  {revSuccess && (
+                    <div className="msg-success">{revSuccess}</div>
+                  )}
 
                   <label className="profile-label">Nota</label>
 

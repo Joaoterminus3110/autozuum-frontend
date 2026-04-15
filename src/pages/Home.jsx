@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { getVehicles } from "../servicos/api";
 import VehicleCard from "../components/VehicleCard";
-import Navbar from "../components/Navbar";
 import "./Home.css";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 
-function HeroBanner({ onNavigate, currentUser }) {
+function HeroBanner() {
+  const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
   return (
     <section className="hero">
       <div className="hero-bg">
@@ -24,16 +28,19 @@ function HeroBanner({ onNavigate, currentUser }) {
           Compre, venda e negocie veículos com segurança e transparência.
         </p>
 
-        {!currentUser && (
+        {!currentUser ? (
           <div className="hero-actions">
-            <button
-              className="btn-green"
-              onClick={() => onNavigate("register")}
-            >
+            <button className="btn-green" onClick={() => navigate("/register")}>
               Criar Conta
             </button>
-            <button className="btn-outline" onClick={() => onNavigate("login")}>
+            <button className="btn-outline" onClick={() => navigate("/login")}>
               Entrar
+            </button>
+          </div>
+        ) : (
+          <div className="hero-actions">
+            <button className="btn-green" onClick={() => navigate("/anunciar")}>
+              Anunciar meu carro agora
             </button>
           </div>
         )}
@@ -104,6 +111,7 @@ function SkeletonCard() {
 }
 
 export default function Home({ onNavigate, currentUser }) {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -163,7 +171,6 @@ export default function Home({ onNavigate, currentUser }) {
 
   return (
     <div className="page">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
       <HeroBanner onNavigate={onNavigate} currentUser={currentUser} />
 
       <main className="main">
@@ -185,7 +192,7 @@ export default function Home({ onNavigate, currentUser }) {
           {currentUser && (
             <button
               className="btn-green vitrine-btn"
-              onClick={() => onNavigate("new-vehicle")}
+              onClick={() => navigate("/anunciar")}
             >
               + Anunciar Veículo
             </button>
@@ -216,9 +223,7 @@ export default function Home({ onNavigate, currentUser }) {
                 <VehicleCard
                   key={v.id}
                   vehicle={v}
-                  onClick={() =>
-                    onNavigate("vehicle-detail", { vehicleId: v.id })
-                  }
+                  onClick={() => navigate(`/veiculo/${v.id}`)}
                 />
               ))
             )}

@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { login } from "../servicos/api";
-import Navbar from "../components/Navbar";
-import "./LoginPage.css"; // 👈 Importação do arquivo de estilos
+import "./LoginPage.css";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 
-export default function LoginPage({ onNavigate, onLogin, currentUser }) {
+export default function LoginPage() {
+  const { handleLogin } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,8 +22,8 @@ export default function LoginPage({ onNavigate, onLogin, currentUser }) {
       // Salva o token no localStorage
       localStorage.setItem("token", res.token);
       // Salva o usuário no estado global
-      onLogin(res.user);
-      onNavigate("home");
+      handleLogin(res.user, res.token);
+      navigate("/");
     } catch (err) {
       setError("E-mail ou senha incorretos.");
     } finally {
@@ -29,8 +33,6 @@ export default function LoginPage({ onNavigate, onLogin, currentUser }) {
 
   return (
     <div className="page-container">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-
       <div className="center-content">
         <div className="login-card">
           <h2 className="login-title">Entrar</h2>
@@ -53,7 +55,7 @@ export default function LoginPage({ onNavigate, onLogin, currentUser }) {
             <input
               className="form-input"
               type="password"
-              placeholder="••••••••"
+              placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -66,10 +68,7 @@ export default function LoginPage({ onNavigate, onLogin, currentUser }) {
 
           <p className="login-footer">
             Não tem conta?{" "}
-            <span
-              className="footer-link"
-              onClick={() => onNavigate("register")}
-            >
+            <span className="footer-link" onClick={() => navigate("/register")}>
               Cadastrar
             </span>
           </p>

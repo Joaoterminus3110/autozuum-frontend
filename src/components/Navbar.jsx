@@ -1,22 +1,27 @@
 import "./Navbar.css";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 
-export default function Navbar({ onNavigate, currentUser, onLogout }) {
+export default function Navbar() {
+  const navigate = useNavigate();
+
+  const { currentUser, handleLogout } = useContext(AuthContext);
+
+  const handleSair = () => {
+    handleLogout(); // Limpa o localStorage e o usuário no Contexto
+    navigate("/"); // Joga o usuário para a Home (ou "/login" se preferir)
+  };
+
   return (
     <nav className="navbar">
-      <div className="navbar-brand" onClick={() => onNavigate("home")}>
-        <img
-          src="/logofull2.png"
-          alt="AutoZoom"
-          className="navbar-logo"
-        />
+      <div className="navbar-brand" onClick={() => navigate("/")}>
+        <img src="/logofull2.png" alt="AutoZoom" className="navbar-logo" />
       </div>
 
       <div className="navbar-links">
         {currentUser && (
-          <button
-            className="navbar-link"
-            onClick={() => onNavigate("new-vehicle")}
-          >
+          <button className="navbar-link" onClick={() => navigate("/anunciar")}>
             + Anunciar
           </button>
         )}
@@ -27,12 +32,12 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
           <div className="navbar-user-actions">
             <span
               className="navbar-user-btn"
-              onClick={() => onNavigate("profile", { userId: currentUser.id })}
+              onClick={() => navigate(`/perfil/${currentUser.id}`)}
             >
               👤 {currentUser.name?.split(" ")[0]}
             </span>
 
-            <button className="navbar-btn-red" onClick={onLogout}>
+            <button className="navbar-btn-red" onClick={handleSair}>
               Sair
             </button>
           </div>
@@ -40,14 +45,14 @@ export default function Navbar({ onNavigate, currentUser, onLogout }) {
           <div className="navbar-auth-actions">
             <button
               className="navbar-btn-outline"
-              onClick={() => onNavigate("login")}
+              onClick={() => navigate("/login")}
             >
               Entrar
             </button>
 
             <button
               className="navbar-btn-solid"
-              onClick={() => onNavigate("register")}
+              onClick={() => navigate("/register")}
             >
               Cadastrar
             </button>

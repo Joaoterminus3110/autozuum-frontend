@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 import {
   createVehicle,
   updateVehicle,
@@ -8,6 +9,7 @@ import {
 import api from "../servicos/api";
 import Navbar from "../components/Navbar";
 import "./VehicleFormPage.css";
+import { useNavigate, useParams } from "react-router-dom";
 
 const FEATURES = [
   "Airbag",
@@ -27,11 +29,10 @@ const FEATURES = [
   "Alarme",
 ];
 
-export default function VehicleFormPage({
-  onNavigate,
-  currentUser,
-  vehicleId,
-}) {
+export default function VehicleFormPage() {
+  const { currentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { id: vehicleId } = useParams();
   const isEdit = Boolean(vehicleId);
 
   const [form, setForm] = useState({
@@ -58,7 +59,7 @@ export default function VehicleFormPage({
 
   useEffect(() => {
     if (!currentUser) {
-      onNavigate("login");
+      navigate("/login");
       return;
     }
 
@@ -70,7 +71,7 @@ export default function VehicleFormPage({
         }
       });
     }
-  }, [currentUser, isEdit, onNavigate, vehicleId]);
+  }, [currentUser, isEdit, navigate, vehicleId]);
 
   const handle = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -111,7 +112,7 @@ export default function VehicleFormPage({
       if (!isEdit && res.vehicle?.id) {
         setSavedVehicleId(res.vehicle.id);
       } else {
-        onNavigate("home");
+        navigate("/home");
       }
     } catch {
       setError("Erro ao salvar.");
@@ -136,7 +137,7 @@ export default function VehicleFormPage({
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       setImages((prev) => [...prev, res.data]);
@@ -162,14 +163,12 @@ export default function VehicleFormPage({
   const handleDelete = async () => {
     if (!window.confirm("Excluir este anúncio?")) return;
     await deleteVehicle(vehicleId);
-    onNavigate("home");
+    navigate("/home");
   };
 
   if (savedVehicleId && !isEdit) {
     return (
       <div className="vehicle-form-page">
-        <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-
         <div className="vehicle-form-wrap">
           <div className="vehicle-form-card">
             <div className="vehicle-form-success-banner">
@@ -192,7 +191,7 @@ export default function VehicleFormPage({
 
             <button
               className="vehicle-form-btn vehicle-form-btn-full"
-              onClick={() => onNavigate("home")}
+              onClick={() => navigate("/home")}
             >
               Concluir e ir para a Vitrine →
             </button>
@@ -204,11 +203,12 @@ export default function VehicleFormPage({
 
   return (
     <div className="vehicle-form-page">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-
       <div className="vehicle-form-wrap">
         <div className="vehicle-form-card">
-          <button className="vehicle-form-back" onClick={() => onNavigate("home")}>
+          <button
+            className="vehicle-form-back"
+            onClick={() => navigate("/home")}
+          >
             ← Voltar
           </button>
 
@@ -416,8 +416,8 @@ export default function VehicleFormPage({
                 {loading
                   ? "Salvando..."
                   : isEdit
-                  ? "Salvar"
-                  : "Publicar e Adicionar Fotos →"}
+                    ? "Salvar"
+                    : "Publicar e Adicionar Fotos →"}
               </button>
             </div>
           </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   getVehicleById,
   createProposal,
@@ -7,14 +7,17 @@ import {
   getVehicles,
   getImageUrl,
 } from "../servicos/api";
-import Navbar from "../components/Navbar";
 import "./VehicleDetailPage.css";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
 
-export default function VehicleDetailPage({
-  onNavigate,
-  currentUser,
-  vehicleId,
-}) {
+export default function VehicleDetailPage() {
+  const { id } = useParams();
+  const vehicleId = id;
+  const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
+
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [proposals, setProposals] = useState([]);
@@ -29,7 +32,9 @@ export default function VehicleDetailPage({
   const [propError, setPropError] = useState("");
   const [propSuccess, setPropSuccess] = useState("");
 
-  const isOwner = currentUser && vehicle && vehicle.userId === currentUser.id;
+  const isLoggedIn = !!currentUser;
+  const isOwner =
+    currentUser && vehicle && String(currentUser.id) === String(vehicle.userId);
 
   useEffect(() => {
     getVehicleById(vehicleId).then((v) => {
@@ -83,7 +88,6 @@ export default function VehicleDetailPage({
   if (loading) {
     return (
       <div className="vehicle-detail-page">
-        <Navbar onNavigate={onNavigate} currentUser={currentUser} />
         <div className="vehicle-detail-center">Carregando...</div>
       </div>
     );
@@ -92,7 +96,6 @@ export default function VehicleDetailPage({
   if (!vehicle || vehicle.error) {
     return (
       <div className="vehicle-detail-page">
-        <Navbar onNavigate={onNavigate} currentUser={currentUser} />
         <div className="vehicle-detail-center">Veículo não encontrado.</div>
       </div>
     );
@@ -106,8 +109,6 @@ export default function VehicleDetailPage({
 
   return (
     <div className="vehicle-detail-page">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
-
       <div className="vehicle-detail-layout">
         <div>
           <div className="vehicle-detail-img-main">
@@ -226,7 +227,7 @@ export default function VehicleDetailPage({
           {!currentUser && (
             <button
               className="vehicle-detail-btn"
-              onClick={() => onNavigate("login")}
+              onClick={() => navigate("/login")}
             >
               Entre para fazer proposta
             </button>
@@ -244,7 +245,7 @@ export default function VehicleDetailPage({
           {isOwner && (
             <button
               className="vehicle-detail-btn-outline"
-              onClick={() => onNavigate("edit-vehicle", { vehicleId })}
+              onClick={() => navigate(`/editar-anuncio/${vehicleId}`)}
             >
               Editar Anúncio
             </button>

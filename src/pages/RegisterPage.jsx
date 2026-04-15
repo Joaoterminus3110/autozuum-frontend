@@ -2,8 +2,10 @@ import { useState } from "react";
 import { createUser } from "../servicos/api";
 import Navbar from "../components/Navbar";
 import "./RegisterPage.css";
+import { useNavigate } from "react-router-dom";
 
-export default function RegisterPage({ onNavigate, currentUser }) {
+export default function RegisterPage({ currentUser }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -109,7 +111,7 @@ export default function RegisterPage({ onNavigate, currentUser }) {
         return;
       }
 
-      onNavigate("login");
+      navigate("/login");
     } catch (err) {
       const msg = err?.response?.data?.error || err.message;
       setGlobalError(translateBackendError(msg));
@@ -120,7 +122,6 @@ export default function RegisterPage({ onNavigate, currentUser }) {
 
   return (
     <div className="register-page">
-      <Navbar onNavigate={onNavigate} currentUser={currentUser} />
       <div className="register-center">
         <div className="register-card">
           <h2 className="register-title">Criar Conta</h2>
@@ -258,7 +259,7 @@ export default function RegisterPage({ onNavigate, currentUser }) {
 
           <p className="register-footer">
             Já tem conta?{" "}
-            <span className="register-link" onClick={() => onNavigate("login")}>
+            <span className="register-link" onClick={() => navigate("/login")}>
               Entrar
             </span>
           </p>
