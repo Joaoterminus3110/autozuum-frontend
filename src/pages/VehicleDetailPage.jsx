@@ -1,14 +1,15 @@
 import { useState, useEffect, useContext } from "react";
-import {
+import api, {
   getVehicleById,
   createProposal,
   getProposalsByVehicle,
   updateProposalStatus,
   getVehicles,
   getImageUrl,
+  // <-- Certifique-se de que a instância do axios (api) está sendo exportada do seu servicos/api
 } from "../servicos/api";
 import "./VehicleDetailPage.css";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom"; // <-- Link adicionado
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 
@@ -24,6 +25,7 @@ export default function VehicleDetailPage() {
   const [myVehicles, setMyVehicles] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
+  const [selectedBuyer, setSelectedBuyer] = useState(""); // <-- Novo state para a venda
   const [form, setForm] = useState({
     cashOffer: "",
     message: "",
@@ -44,16 +46,16 @@ export default function VehicleDetailPage() {
 
   useEffect(() => {
     if (isOwner)
-      getProposalsByVehicle(vehicleId).then((res) => {
-        console.log("👀 RAIO-X DAS PROPOSTAS:", res);
-        setProposals(res);
-      });
+      getProposalsByVehicle(vehicleId)
+        .then((res) => {
+          setProposals(Array.isArray(res) ? res : []);
+        })
+        .catch(console.error); // Silencia erro no console se não houver propostas
   }, [isOwner, vehicleId]);
 
   useEffect(() => {
     if (currentUser && showForm) {
       getVehicles().then((res) => {
-        // 1. O Adaptador: Pega a lista esteja ela solta ou dentro de res.vehicles
         const vehiclesArray =
           res && Array.isArray(res.vehicles)
             ? res.vehicles
@@ -61,7 +63,6 @@ export default function VehicleDetailPage() {
               ? res
               : [];
 
-        // 2. Agora sim, aplicamos o filtro (com aquela blindagem de String que fizemos)
         setMyVehicles(
           vehiclesArray.filter(
             (v) =>
@@ -95,10 +96,17 @@ export default function VehicleDetailPage() {
   };
 
   const handleStatus = async (id, status) => {
-    await updateProposalStatus(id, status);
-    setProposals((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status } : p)),
-    );
+    try {
+      await updateProposalStatus(id, status);
+      setProposals((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status } : p)),
+      );
+    } catch (error) {
+      alert(
+        "Erro ao atualizar status: " +
+          (error.response?.data?.error || "Verifique a conexão."),
+      );
+    }
   };
 
   if (loading) {
@@ -128,9 +136,7 @@ export default function VehicleDetailPage() {
       <div className="vehicle-detail-layout">
         <div>
           <div className="vehicle-detail-img-main">
-            {/* 1. IMAGEM PRINCIPAL */}
             <img
-              // Se houver imagens, pega a do índice atual. Se não, mostra o fallback direto.
               src={
                 images.length > 0
                   ? getImageUrl(images[imgIndex].url)
@@ -180,7 +186,6 @@ export default function VehicleDetailPage() {
                   className={`vehicle-detail-thumb ${
                     i === imgIndex ? "vehicle-detail-thumb-active" : ""
                   }`}
-                  // Fallback para caso uma miniatura específica quebre
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/fallback-autozoom.png";
@@ -239,11 +244,11 @@ export default function VehicleDetailPage() {
 
           <div className="vehicle-detail-seller">
             <div className="vehicle-detail-avatar">
-              {vehicle.User?.name?.[0]?.toUpperCase()}
+              {vehicle.User?.name?.[0]?.toUpperCase() || "V"}
             </div>
             <div>
               <strong className="vehicle-detail-seller-name">
-                {vehicle.User?.name}
+                {vehicle.User?.name || "Vendedor"}
               </strong>
               <p className="vehicle-detail-seller-email">
                 {vehicle.User?.email}
@@ -351,85 +356,107 @@ export default function VehicleDetailPage() {
         </div>
       </div>
 
-      {isOwner && proposals.length > 0 && (
+      {isOwner && (
         <div className="vehicle-detail-prop-section">
-          <h3 className="vehicle-detail-prop-heading">
-            Propostas Recebidas ({proposals.length})
-          </h3>
-
-          {proposals.map((p) => (
-            <div
-              key={p.id}
-              className={`vehicle-detail-prop-card ${
-                p.status === "ACCEPTED"
-                  ? "vehicle-detail-prop-card-accepted"
-                  : p.status === "REJECTED"
-                    ? "vehicle-detail-prop-card-rejected"
-                    : ""
-              }`}
+          {/* ======================================================== */}
+          {/* BLOCO DE FINALIZAR VENDA SUBSTITUINDO A LISTA DE PROPOSTAS */}
+          {/* ======================================================== */}
+          <div
+            style={{
+              backgroundColor: "#161719",
+              border: "1px solid #2a2c2f",
+              padding: "20px",
+              borderRadius: "12px",
+              marginTop: "10px",
+            }}
+          >
+            <h3
+              style={{
+                color: "#f0f0ee",
+                borderBottom: "1px solid #2a2c2f",
+                paddingBottom: "15px",
+                marginBottom: "15px",
+              }}
             >
-              <div className="vehicle-detail-prop-top">
-                <strong className="vehicle-detail-prop-user">
-                  {p.User?.name || "Comprador"}
-                </strong>
-                <span
-                  className={`vehicle-detail-prop-status ${
-                    p.status === "ACCEPTED"
-                      ? "status-accepted"
-                      : p.status === "REJECTED"
-                        ? "status-rejected"
-                        : "status-pending"
-                  }`}
-                >
-                  {p.status}
-                </span>
-              </div>
+              Finalizar Venda do Veículo
+            </h3>
 
-              {/* 1. Valor em Dinheiro */}
-              {p.cashOffer > 0 && (
-                <p className="vehicle-detail-prop-price">
-                  💰{" "}
-                  {Number(p.cashOffer).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </p>
-              )}
+            <div>
+              <label
+                style={{
+                  color: "#888",
+                  display: "block",
+                  marginBottom: "8px",
+                  fontSize: "13px",
+                }}
+              >
+                Selecione o Comprador:
+              </label>
 
-              {/* 2. INJEÇÃO AQUI: Veículo na Troca */}
-              {p.offeredVehicle && (
-                <p className="vehicle-detail-prop-message">
-                  {" "}
-                  {/* Usando a mesma classe de texto pra não quebrar seu layout */}
-                  🚗 <strong>Troca:</strong> {p.offeredVehicle.brand}{" "}
-                  {p.offeredVehicle.model} ({p.offeredVehicle.manufactureYear})
-                </p>
-              )}
+              <select
+                value={selectedBuyer}
+                onChange={(e) => setSelectedBuyer(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  backgroundColor: "#1e2022",
+                  color: "#f0f0ee",
+                  border: "1px solid #2a2c2f",
+                  marginBottom: "20px",
+                  outline: "none",
+                }}
+              >
+                <option value="">Selecione...</option>
 
-              {/* 3. Mensagem */}
-              {p.message && (
-                <p className="vehicle-detail-prop-message">"{p.message}"</p>
-              )}
+                {/* Lista apenas quem teve a proposta ACEITA (status ACCEPTED) */}
+                {proposals
+                  .filter((p) => p.status === "ACCEPTED")
+                  .map((p) => (
+                    <option key={p.id} value={p.buyerId}>
+                      {p.buyer?.name || "Comprador"} (Proposta Aceita)
+                    </option>
+                  ))}
 
-              {/* 4. Seus Botões de Ação */}
-              {p.status === "PENDING" && (
-                <div className="vehicle-detail-prop-actions">
-                  <button
-                    className="vehicle-detail-btn-green"
-                    onClick={() => handleStatus(p.id, "ACCEPTED")}
-                  >
-                    ✓ Aceitar
-                  </button>
-                  <button
-                    className="vehicle-detail-btn-red"
-                    onClick={() => handleStatus(p.id, "REJECTED")}
-                  >
-                    X Recusar
-                  </button>
-                </div>
-              )}
+                <option value="OUTRA_PLATAFORMA">
+                  Vendido em outra plataforma / Fora do site
+                </option>
+              </select>
+
+              <button
+                className="vehicle-detail-btn-green"
+                style={{
+                  width: "100%",
+                  padding: "15px",
+                  fontSize: "1rem",
+                  opacity: selectedBuyer ? 1 : 0.5,
+                  cursor: selectedBuyer ? "pointer" : "not-allowed",
+                }}
+                disabled={!selectedBuyer}
+                onClick={async () => {
+                  try {
+                    // O payload: envia null se for fora do site, ou o ID do comprador
+                    const payload =
+                      selectedBuyer === "OUTRA_PLATAFORMA"
+                        ? { buyerId: null }
+                        : { buyerId: selectedBuyer };
+
+                    await api.patch(`/vehicles/${vehicleId}/sell`, payload);
+                    alert("Veículo marcado como vendido com sucesso!");
+                    navigate("/perfil"); // Redireciona de forma limpa para o perfil
+                  } catch (error) {
+                    alert(
+                      "Erro ao finalizar venda: " +
+                        (error.response?.data?.error ||
+                          "Verifique sua conexão."),
+                    );
+                  }
+                }}
+              >
+                Confirmar Venda e Encerrar Anúncio
+              </button>
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,43 +1,58 @@
 import { useState, useEffect, useContext } from "react";
-import {
+import api, {
   getUserById,
   getReviewsByUser,
-  getVehicles,
-  createReview,
   updateUser,
+  getProposalsByVehicle,
+  getImageUrl,
 } from "../servicos/api";
 import VehicleCard from "../components/VehicleCard";
 import "./ProfilePage.css";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { id } = useParams(); // ID do perfil que estamos visitando
-  const { currentUser } = useContext(AuthContext); // Usuário que está logado
+  const { id } = useParams();
+  const { currentUser } = useContext(AuthContext);
 
-  // 1. Define quem é o dono deste perfil (Prioridade para o ID da URL)
   const targetId = id || currentUser?.id;
-
-  // 2. Checagem única se o perfil é meu (usando String para evitar erro de tipo)
   const isSelf = currentUser && String(currentUser.id) === String(targetId);
 
+  // Estados principais
   const [user, setUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [soldVehicles, setSoldVehicles] = useState([]);
+  const [boughtVehicles, setBoughtVehicles] = useState([]);
+  const [pendingProposals, setPendingProposals] = useState([]);
+
+  // Estados de layout e edição
   const [tab, setTab] = useState("vehicles");
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", phone: "", email: "" });
 
-  // States de Avaliação...
-  const [revForm, setRevForm] = useState({ rating: 5, comment: "" });
-  const [revError, setRevError] = useState("");
-  const [revSuccess, setRevSuccess] = useState("");
+  // Estados do Modal de Avaliação e Toast (Notificação)
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+  const [targetReviewUser, setTargetReviewUser] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  // Recupera as avaliações já feitas no navegador para esconder os botões
+  const [evaluations, setEvaluations] = useState(() => {
+    const saved = localStorage.getItem("autozoom_evals");
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500); // Some após 3.5 segundos
+  };
 
   useEffect(() => {
     if (!targetId) {
-      navigate("/login"); // Se não tem ID e não tá logado, tchau!
+      navigate("/login");
       return;
     }
 
@@ -46,18 +61,54 @@ export default function ProfilePage() {
     Promise.all([
       getUserById(targetId),
       getReviewsByUser(targetId),
-      getVehicles(), // Aqui pegamos todos...
+      api.get("/vehicles?includeSold=true").then((res) => res.data),
     ])
-      .then(([u, r, v]) => {
+      .then(async ([u, r, v]) => {
         setUser(u);
         setReviews(Array.isArray(r) ? r : []);
 
-        // 3. FILTRAGEM: Só mostra os veículos onde o dono é o cara do perfil
-        const allVehicles = v && Array.isArray(v.vehicles) ? v.vehicles : v;
-        const filtered = allVehicles.filter(
+        const allVehicles =
+          v && Array.isArray(v.vehicles)
+            ? v.vehicles
+            : Array.isArray(v)
+              ? v
+              : [];
+
+        const userVehicles = allVehicles.filter(
           (veh) => String(veh.userId) === String(targetId),
         );
-        setVehicles(filtered);
+        const active = userVehicles.filter((veh) => veh.status !== "sold");
+        const sold = userVehicles.filter((veh) => veh.status === "sold");
+
+        const bought = allVehicles.filter(
+          (veh) =>
+            String(veh.buyerId) === String(targetId) && veh.status === "sold",
+        );
+
+        setVehicles(active);
+        setSoldVehicles(sold);
+        setBoughtVehicles(bought);
+
+        if (isSelf) {
+          try {
+            const proposalsPromises = active.map((veh) =>
+              getProposalsByVehicle(veh.id)
+                .then((res) => {
+                  const props = Array.isArray(res) ? res : [];
+                  return props.map((p) => ({ ...p, targetVehicle: veh }));
+                })
+                .catch(() => []),
+            );
+
+            const allProposalsArrays = await Promise.all(proposalsPromises);
+            const allProposals = allProposalsArrays.flat();
+
+            const pending = allProposals.filter((p) => p.status === "PENDING");
+            setPendingProposals(pending);
+          } catch (error) {
+            console.error("Erro ao buscar propostas pendentes:", error);
+          }
+        }
 
         setEditForm({
           name: u.name || "",
@@ -70,34 +121,44 @@ export default function ProfilePage() {
         console.error("Erro ao carregar dados:", err);
         navigate("/");
       });
-  }, [targetId, navigate]);
+  }, [targetId, navigate, isSelf]);
 
-  const avg = reviews.length
-    ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)
-    : null;
-
-  const handleReview = async (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
-    setRevError("");
-    setRevSuccess("");
+    try {
+      await api.post("/reviews", {
+        reviewedId: targetReviewUser.id,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+      });
 
-    const res = await createReview({
-      reviewerId: currentUser.id,
-      reviewedId: targetId,
-      rating: Number(revForm.rating),
-      comment: revForm.comment,
-    });
+      // Salva a nota no LocalStorage vinculada ao ID do carro
+      const newEvals = {
+        ...evaluations,
+        [targetReviewUser.vehicleId]: reviewForm.rating,
+      };
+      setEvaluations(newEvals);
+      localStorage.setItem("autozoom_evals", JSON.stringify(newEvals));
 
-    if (res.error) {
-      setRevError(res.error);
-      return;
+      showToast("Avaliação enviada com sucesso!", "success");
+      setShowReviewModal(false);
+      setReviewForm({ rating: 5, comment: "" });
+    } catch (error) {
+      const errMsg = error.response?.data?.error || "Erro ao enviar avaliação.";
+
+      // Se a API disser que já avaliou, escondemos o botão por garantia
+      if (errMsg.toLowerCase().includes("já avaliou")) {
+        const newEvals = {
+          ...evaluations,
+          [targetReviewUser.vehicleId]: reviewForm.rating,
+        };
+        setEvaluations(newEvals);
+        localStorage.setItem("autozoom_evals", JSON.stringify(newEvals));
+      }
+
+      showToast(errMsg, "error");
+      setShowReviewModal(false);
     }
-
-    setRevSuccess("Avaliação enviada!");
-    setReviews((prev) => [
-      ...prev,
-      { ...res.review, reviewer: { name: currentUser.name } },
-    ]);
   };
 
   const handleSave = async () => {
@@ -105,6 +166,10 @@ export default function ProfilePage() {
     setUser({ ...user, ...editForm });
     setEditing(false);
   };
+
+  const avg = reviews.length
+    ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   if (loading) {
     return (
@@ -192,6 +257,33 @@ export default function ProfilePage() {
               Anúncios ({vehicles.length})
             </button>
 
+            {isSelf && (
+              <button
+                className={`profile-tab ${tab === "proposals" ? "profile-tab-active" : ""}`}
+                onClick={() => setTab("proposals")}
+              >
+                Novas Propostas ({pendingProposals.length})
+              </button>
+            )}
+
+            {isSelf && (
+              <button
+                className={`profile-tab ${tab === "sold" ? "profile-tab-active" : ""}`}
+                onClick={() => setTab("sold")}
+              >
+                Vendidos ({soldVehicles.length})
+              </button>
+            )}
+
+            {isSelf && (
+              <button
+                className={`profile-tab ${tab === "bought" ? "profile-tab-active" : ""}`}
+                onClick={() => setTab("bought")}
+              >
+                Minhas Compras ({boughtVehicles.length})
+              </button>
+            )}
+
             <button
               className={`profile-tab ${tab === "reviews" ? "profile-tab-active" : ""}`}
               onClick={() => setTab("reviews")}
@@ -225,78 +317,301 @@ export default function ProfilePage() {
               </div>
             ))}
 
+          {tab === "proposals" && isSelf && (
+            <div>
+              {pendingProposals.length === 0 ? (
+                <div className="profile-empty">
+                  Nenhuma proposta pendente no momento.
+                </div>
+              ) : (
+                pendingProposals.map((p) => (
+                  <div key={p.id} className="perfil-proposal-card">
+                    <div className="perfil-prop-action">
+                      <Link
+                        to={`/proposta/${p.id}`}
+                        className="perfil-btn-circle"
+                      >
+                        Ver
+                        <br />
+                        Proposta
+                      </Link>
+                    </div>
+                    <div className="perfil-prop-info">
+                      <h3>
+                        Veículo: {p.targetVehicle?.brand}{" "}
+                        {p.targetVehicle?.model}
+                      </h3>
+                      <p>
+                        <strong>Valor Ofertado:</strong>{" "}
+                        {Number(p.cashOffer).toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}{" "}
+                        {p.offeredVehicleId ? " + 1 veículo" : ""}
+                      </p>
+                      <p>
+                        <strong>Mensagem:</strong> {p.message || "Sem mensagem"}
+                      </p>
+                      <p className="perfil-prop-owner">
+                        Dono da Oferta:{" "}
+                        {p.buyer?.name?.split(" ")[0] || "Comprador"}
+                      </p>
+                    </div>
+                    <div className="perfil-prop-image-box">
+                      <img
+                        src={
+                          p.targetVehicle?.images?.[0]?.url
+                            ? getImageUrl(p.targetVehicle.images[0].url)
+                            : "/fallback-autozoom.png"
+                        }
+                        alt="Veículo"
+                        className="perfil-prop-image"
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {tab === "sold" && isSelf && (
+            <div>
+              {soldVehicles.length === 0 ? (
+                <div className="profile-empty">
+                  Você ainda não concluiu nenhuma venda.
+                </div>
+              ) : (
+                soldVehicles.map((v) => (
+                  <div
+                    key={v.id}
+                    className="perfil-proposal-card perfil-sold-card"
+                  >
+                    <div className="perfil-prop-info">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <h3>
+                          {v.brand} {v.model}
+                        </h3>
+                        <span className="sold-badge">VENDIDO</span>
+                      </div>
+                      <p>
+                        <strong>Motor:</strong> {v.engine}
+                      </p>
+                      <p>
+                        <strong>Data da Venda:</strong>{" "}
+                        {new Date(v.updatedAt).toLocaleDateString("pt-BR")}
+                      </p>
+                      <p className="perfil-prop-owner">
+                        Comprador:{" "}
+                        {v.Buyer?.name || "Vendido em outra plataforma"}
+                      </p>
+                    </div>
+                    <div className="perfil-prop-image-box">
+                      <img
+                        src={
+                          v.images?.[0]?.url
+                            ? getImageUrl(v.images[0].url)
+                            : "/fallback-autozoom.png"
+                        }
+                        alt="Veículo Vendido"
+                        className="perfil-prop-image"
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {tab === "bought" && isSelf && (
+            <div>
+              {boughtVehicles.length === 0 ? (
+                <div className="profile-empty">
+                  Você ainda não comprou nenhum veículo na plataforma.
+                </div>
+              ) : (
+                boughtVehicles.map((v) => (
+                  <div
+                    key={v.id}
+                    className="perfil-proposal-card perfil-sold-card"
+                  >
+                    <div className="perfil-prop-info">
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <h3>
+                          {v.brand} {v.model}
+                        </h3>
+                        <span
+                          className="sold-badge"
+                          style={{ backgroundColor: "#2980b9" }}
+                        >
+                          COMPRADO
+                        </span>
+                      </div>
+                      <p>
+                        <strong>Motor:</strong> {v.engine}
+                      </p>
+                      <p>
+                        <strong>Data da Compra:</strong>{" "}
+                        {new Date(v.updatedAt).toLocaleDateString("pt-BR")}
+                      </p>
+                      <p className="perfil-prop-owner">
+                        Vendedor: {v.user?.name || "Vendedor"}
+                      </p>
+                    </div>
+                    <div className="perfil-prop-image-box">
+                      <img
+                        src={
+                          v.images?.[0]?.url
+                            ? getImageUrl(v.images[0].url)
+                            : "/fallback-autozoom.png"
+                        }
+                        alt="Veículo Comprado"
+                        className="perfil-prop-image"
+                      />
+
+                      {/* Verifica se o veículo já foi avaliado */}
+                      {evaluations[v.id] ? (
+                        <div className="evaluated-container">
+                          <span className="evaluated-text">Sua Avaliação:</span>
+                          <div className="evaluated-stars">
+                            {"⭐".repeat(evaluations[v.id])}
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn-avaliar"
+                          onClick={() => {
+                            setTargetReviewUser({
+                              id: v.userId,
+                              name: v.user?.name || "Vendedor",
+                              vehicleId: v.id,
+                            });
+                            setShowReviewModal(true);
+                          }}
+                        >
+                          Avaliar Vendedor
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
           {tab === "reviews" && (
             <div>
-              {reviews.length === 0 && (
-                <div className="profile-empty">⭐ Sem avaliações ainda.</div>
-              )}
-
-              {reviews.map((r, i) => (
-                <div key={i} className="review-card">
-                  <div className="review-header">
-                    <div className="avatar-sm">
-                      {r.reviewer?.name?.[0]?.toUpperCase()}
-                    </div>
-
-                    <strong className="reviewer-name">
-                      {r.reviewer?.name}
-                    </strong>
-
-                    <span className="review-stars">
-                      {"★".repeat(r.rating)}
-                      {"☆".repeat(5 - r.rating)}
-                    </span>
-                  </div>
-
-                  {r.comment && <p className="review-comment">{r.comment}</p>}
+              {reviews.length === 0 ? (
+                <div className="profile-empty">
+                  ⭐ Nenhuma avaliação recebida ainda.
                 </div>
-              ))}
-
-              {currentUser && !isSelf && (
-                <form onSubmit={handleReview} className="review-form">
-                  <h4 className="review-form-title">Deixar Avaliação</h4>
-
-                  {revError && <div className="msg-error">{revError}</div>}
-                  {revSuccess && (
-                    <div className="msg-success">{revSuccess}</div>
-                  )}
-
-                  <label className="profile-label">Nota</label>
-
-                  <div className="rating-actions">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setRevForm({ ...revForm, rating: n })}
-                        className={`star-btn ${n <= revForm.rating ? "star-btn-active" : ""}`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="profile-label">Comentário</label>
-
-                  <textarea
-                    className="profile-input profile-textarea"
-                    rows={3}
-                    placeholder="Como foi negociar?"
-                    value={revForm.comment}
-                    onChange={(e) =>
-                      setRevForm({ ...revForm, comment: e.target.value })
-                    }
-                  />
-
-                  <button type="submit" className="btn">
-                    Enviar Avaliação
-                  </button>
-                </form>
+              ) : (
+                <div className="perfil-reviews-grid">
+                  {reviews.map((rev) => (
+                    <div key={rev.id} className="perfil-review-card">
+                      <div className="review-header">
+                        <span className="stars">
+                          {"⭐".repeat(rev.rating)}
+                          {"☆".repeat(5 - rev.rating)}
+                        </span>
+                        <span className="review-date">
+                          {new Date(rev.createdAt).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                      <p className="review-comment">"{rev.comment}"</p>
+                      <div className="review-author">
+                        <span>
+                          Avaliado por:{" "}
+                          <strong>
+                            {rev.reviewer?.name ||
+                              rev.Reviewer?.name ||
+                              "Usuário"}
+                          </strong>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
         </div>
       </div>
+
+      {showReviewModal && (
+        <div className="modal-overlay">
+          <div className="modal-content review-modal">
+            <h2>Avaliar {targetReviewUser?.name}</h2>
+            <form onSubmit={handleSubmitReview}>
+              <div className="form-group">
+                <label>Nota (1 a 5 Estrelas)</label>
+                <select
+                  value={reviewForm.rating}
+                  onChange={(e) =>
+                    setReviewForm({
+                      ...reviewForm,
+                      rating: Number(e.target.value),
+                    })
+                  }
+                  required
+                >
+                  <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
+                  <option value="4">⭐⭐⭐⭐ (Muito Bom)</option>
+                  <option value="3">⭐⭐⭐ (Bom)</option>
+                  <option value="2">⭐⭐ (Ruim)</option>
+                  <option value="1">⭐ (Péssimo)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Seu Comentário</label>
+                <textarea
+                  rows="4"
+                  value={reviewForm.comment}
+                  onChange={(e) =>
+                    setReviewForm({ ...reviewForm, comment: e.target.value })
+                  }
+                  placeholder="Como foi a negociação?..."
+                  required
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setShowReviewModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-confirm">
+                  Enviar Avaliação
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST NOTIFICATION FLUTUANTE */}
+      {toast && (
+        <div
+          className={`toast-notification ${toast.type === "error" ? "toast-error" : ""}`}
+        >
+          {toast.msg}
+        </div>
+      )}
     </div>
   );
 }

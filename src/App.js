@@ -9,6 +9,7 @@ import VehicleFormPage from "./pages/VehicleFormPage";
 import ProfilePage from "./pages/ProfilePage";
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./routes/PrivateRoute";
+import ProposalDetailPage from "./pages/ProposalDetailPage";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/anunciar" element={<VehicleFormPage />} />
             <Route path="/editar-veiculo/:id" element={<VehicleFormPage />} />
+            <Route path="/proposta/:id" element={<ProposalDetailPage />} />
             {/* Qualquer rota que você colocar aqui dentro estará protegida automaticamente! */}
           </Route>
 
