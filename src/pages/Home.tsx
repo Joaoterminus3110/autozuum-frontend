@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, ChangeEvent } from "react";
+import { useState, useContext, ChangeEvent } from "react";
 import { getVehicles } from "../servicos/api";
 import VehicleCard from "../components/VehicleCard";
 // @ts-ignore - Mantido para evitar o erro de importação de CSS no seu ambiente
@@ -6,6 +6,7 @@ import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import { IVehicle } from "../types"; // Regra Tech Forge: Uso de interfaces globais
+import { useEffect } from "react";
 
 function HeroBanner() {
   const navigate = useNavigate();
@@ -145,8 +146,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   // Regra da Rúbrica: Paginação
-  const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   const [filters, setFilters] = useState<IFilters>({
     search: "",
@@ -155,32 +156,24 @@ export default function Home() {
     sort: "",
   });
 
-  const fetchVehicles = async (
-    pageNum: number = 1,
-    isLoadMore: boolean = false,
-  ) => {
+  const fetchVehicles = async (pageNum: number = 1) => {
     setLoading(true);
     setError(null);
+
     try {
-      // Passando a página atual e o limite (ex: 12 itens por página)
       const data = await getVehicles(pageNum, 12);
 
       const fetchedVehicles =
         data && Array.isArray(data.vehicles) ? data.vehicles : [];
-      const totalAvailable = data.total || 0;
 
-      if (isLoadMore) {
-        setVehicles((prev) => [...prev, ...fetchedVehicles]);
+      setVehicles(fetchedVehicles);
+
+      // Usamos apenas o 'total' que o TS já conhece e calculamos as páginas
+      if (data.total) {
+        setTotalPages(Math.ceil(data.total / 12));
       } else {
-        setVehicles(fetchedVehicles);
+        setTotalPages(1);
       }
-
-      // Se a quantidade de veículos na tela for menor que o total, tem mais para carregar
-      setHasMore(
-        isLoadMore
-          ? vehicles.length + fetchedVehicles.length < totalAvailable
-          : fetchedVehicles.length < totalAvailable,
-      );
     } catch (err: any) {
       setError(err.message || "Erro ao carregar veículos");
     } finally {
@@ -189,14 +182,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchVehicles(1, false);
-  }, []);
-
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchVehicles(nextPage, true);
-  };
+    fetchVehicles(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
   // Aplicação dos filtros locais na lista já carregada
   const filtered = vehicles
@@ -239,8 +227,7 @@ export default function Home() {
           filters={filters}
           setFilters={setFilters}
           onSearch={() => {
-            setPage(1);
-            fetchVehicles(1, false);
+            fetchVehicles(1);
           }}
         />
 
@@ -267,10 +254,7 @@ export default function Home() {
           <div className="state-error">
             <span>⚠️</span>
             <p>{error}</p>
-            <button
-              className="btn-outline"
-              onClick={() => fetchVehicles(1, false)}
-            >
+            <button className="btn-outline" onClick={() => fetchVehicles(1)}>
               Tentar novamente
             </button>
           </div>
@@ -301,16 +285,38 @@ export default function Home() {
         )}
 
         {/* Botão de Paginação */}
-        {!loading && !error && hasMore && filtered.length > 0 && (
+        {!loading && !error && totalPages > 1 && (
           <div
             style={{
               display: "flex",
               justifyContent: "center",
-              marginTop: "2rem",
+              gap: "15px",
+              marginTop: "30px",
+              paddingBottom: "20px",
             }}
           >
-            <button className="btn-outline" onClick={handleLoadMore}>
-              Carregar mais veículos
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="btn-outline"
+            >
+              ← Anterior
+            </button>
+
+            <span
+              style={{ alignSelf: "center", color: "#fff", fontWeight: "bold" }}
+            >
+              Página {currentPage} de {totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="btn-outline"
+            >
+              Próxima →
             </button>
           </div>
         )}

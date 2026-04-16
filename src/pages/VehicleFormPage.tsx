@@ -146,6 +146,7 @@ export default function VehicleFormPage() {
 
       if (res.error) {
         setError(res.error);
+        setLoading(false);
         return;
       }
 
@@ -156,8 +157,24 @@ export default function VehicleFormPage() {
       } else {
         navigate(`/veiculo/${vehicleId}`);
       }
-    } catch {
-      setError("Erro ao salvar.");
+    } catch (err: any) {
+      // 👇 AQUI ESTÁ O TRATAMENTO DE ERRO PROFISSIONAL
+      console.error("Erro na requisição:", err);
+
+      // Verifica se o erro veio da resposta do Axios (Backend)
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error); // Exibe a mensagem real do Backend
+      }
+      // Se for um erro de validação do próprio banco de dados (ex: Sequelize)
+      else if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      }
+      // Fallback para caso o servidor esteja fora do ar
+      else {
+        setError(
+          "Não foi possível conectar ao servidor. Tente novamente mais tarde.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -174,11 +191,15 @@ export default function VehicleFormPage() {
       const formData = new FormData();
       formData.append("image", file);
 
-      const res = await api.post(`/images`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // 👇 AQUI ESTÁ A MÁGICA: Atualizado para a nova rota do Backend
+      const res = await api.post(
+        `/vehicles/${savedVehicleId}/images`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
 
-      // Se a rota for diferente, ajuste para `/vehicles/${savedVehicleId}/images` dependendo de como ficou o Back
       setImages((prev) => [...prev, res.data]);
     } catch {
       setUploadError("Erro ao enviar foto. Tente novamente.");

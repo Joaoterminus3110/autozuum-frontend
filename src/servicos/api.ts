@@ -9,13 +9,33 @@ const api = axios.create({
 });
 
 // Interceptor para injetar o token JWT automaticamente em rotas autenticadas
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Garante que o Bearer esteja sempre com o espaçamento correto
+      config.headers.Authorization = `Bearer ${token.trim()}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Adicionamos também um interceptor de RESPOSTA para lidar com expiração de token
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Se o token for inválido/expirado, desloga o usuário automaticamente
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 export const login = async (
@@ -88,9 +108,11 @@ export const deleteVehicle = async (id: string): Promise<void> => {
 
 // ─── VEHICLE IMAGES ───────────────────────────────────────────────────────────
 export const addVehicleImage = async (
+  vehicleId: string,
   data: FormData,
 ): Promise<IVehicleImage> => {
-  const res = await api.post("/images", data);
+  // A rota agora segue o padrão: /vehicles/:id/images
+  const res = await api.post(`/vehicles/${vehicleId}/images`, data);
   return res.data;
 };
 
