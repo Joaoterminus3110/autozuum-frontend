@@ -11,7 +11,6 @@ import VehicleCard from "../components/VehicleCard";
 import "../styles/ProfilePage.css";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
-// Importando as Interfaces Globais (Regra Tech Forge)
 import { IUser, IReview, IVehicle, IProposal } from "../types";
 
 export default function ProfilePage() {
@@ -22,7 +21,6 @@ export default function ProfilePage() {
   const targetId = id || currentUser?.id;
   const isSelf = currentUser && String(currentUser.id) === String(targetId);
 
-  // Estados principais com Tipagem Forte (Fim do 'any')
   const [user, setUser] = useState<IUser | null>(null);
   const [reviews, setReviews] = useState<IReview[]>([]);
   const [vehicles, setVehicles] = useState<IVehicle[]>([]);
@@ -30,13 +28,11 @@ export default function ProfilePage() {
   const [boughtVehicles, setBoughtVehicles] = useState<IVehicle[]>([]);
   const [pendingProposals, setPendingProposals] = useState<IProposal[]>([]);
 
-  // Estados de layout e edição
   const [tab, setTab] = useState<string>("vehicles");
   const [loading, setLoading] = useState<boolean>(true);
   const [editing, setEditing] = useState<boolean>(false);
   const [editForm, setEditForm] = useState({ name: "", phone: "", email: "" });
 
-  // Estados do Modal de Avaliação e Toast (Notificação)
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
   const [targetReviewUser, setTargetReviewUser] = useState<{
@@ -48,7 +44,6 @@ export default function ProfilePage() {
     null,
   );
 
-  // Recupera as avaliações já feitas no navegador para esconder os botões
   const [evaluations, setEvaluations] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem("autozoom_evals");
     return saved ? JSON.parse(saved) : {};
@@ -89,7 +84,6 @@ export default function ProfilePage() {
         const active = userVehicles.filter((veh) => veh.status !== "sold");
         const sold = userVehicles.filter((veh) => veh.status === "sold");
 
-        // O TypeScript precisa garantir que buyerId existe na interface, mas como pode ser customizado, checamos via 'any' localmente se necessário, ou assumimos que a interface será respeitada
         const bought = allVehicles.filter(
           (veh: any) =>
             String(veh.buyerId) === String(targetId) && veh.status === "sold",
@@ -214,7 +208,6 @@ export default function ProfilePage() {
                 }
                 placeholder="Telefone"
               />
-              {/* REGRA DA RUBRICA: Não permitir que o usuário altere o email */}
               <input
                 className="profile-input"
                 value={editForm.email}
@@ -299,7 +292,6 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {/* Listagens de Anúncios */}
           {tab === "vehicles" &&
             (vehicles.length === 0 ? (
               <div className="profile-empty">
@@ -325,7 +317,6 @@ export default function ProfilePage() {
               </div>
             ))}
 
-          {/* Listagem de Propostas */}
           {tab === "proposals" && isSelf && (
             <div>
               {pendingProposals.length === 0 ? (
@@ -383,7 +374,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Listagem de Vendidos */}
           {tab === "sold" && isSelf && (
             <div>
               {soldVehicles.length === 0 ? (
@@ -437,7 +427,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Listagem de Comprados e Avaliação */}
           {tab === "bought" && isSelf && (
             <div>
               {boughtVehicles.length === 0 ? (
@@ -511,7 +500,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Listagem de Avaliações Recebidas */}
           {tab === "reviews" && (
             <div>
               {reviews.length === 0 ? (
@@ -549,7 +537,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Modal de Avaliação */}
       {showReviewModal && (
         <div className="modal-overlay">
           <div className="modal-content review-modal">
@@ -603,7 +590,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* TOAST FLUTUANTE */}
       {toast && (
         <div
           className={`toast-notification ${toast.type === "error" ? "toast-error" : ""}`}

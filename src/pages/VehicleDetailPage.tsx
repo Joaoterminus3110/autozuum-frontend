@@ -147,7 +147,6 @@ export default function VehicleDetailPage() {
   return (
     <div className="vehicle-detail-page">
       <div className="vehicle-detail-layout">
-        {/* GALERIA DE IMAGENS */}
         <div>
           <div className="vehicle-detail-img-main">
             <img
@@ -204,7 +203,6 @@ export default function VehicleDetailPage() {
           )}
         </div>
 
-        {/* INFORMAÇÕES DO VEÍCULO */}
         <div className="vehicle-detail-info">
           <div className="vehicle-detail-header">
             <div>
@@ -250,7 +248,6 @@ export default function VehicleDetailPage() {
             <p className="vehicle-detail-description">{vehicle.description}</p>
           </div>
 
-          {/* DADOS DO VENDEDOR */}
           <div className="vehicle-detail-seller">
             <div className="vehicle-detail-avatar">
               {vehicle.user?.name?.[0]?.toUpperCase() || "V"}
@@ -265,7 +262,6 @@ export default function VehicleDetailPage() {
             </div>
           </div>
 
-          {/* AÇÕES DE COMPRA/OFERTA */}
           {!currentUser && (
             <button
               className="vehicle-detail-btn"
@@ -362,13 +358,10 @@ export default function VehicleDetailPage() {
         </div>
       </div>
 
-      {/* PAINEL EXCLUSIVO DO DONO DO VEÍCULO */}
       {isOwner && (
         <div className="vehicle-detail-prop-section">
-          {/* Componentização: Lista de Propostas Recebidas */}
           <ProposalList proposals={proposals} onUpdateStatus={handleStatus} />
 
-          {/* Finalizar Venda */}
           <div className="vehicle-detail-sell-box">
             <h3 className="vehicle-detail-sell-title">
               Finalizar Venda do Veículo
@@ -426,7 +419,6 @@ export default function VehicleDetailPage() {
   );
 }
 
-// ─── COMPONENTE EXCLUSIVO (Garante a nota de Componentização) ────────────────
 interface ProposalListProps {
   proposals: IProposal[];
   onUpdateStatus: (id: string, status: string) => void;

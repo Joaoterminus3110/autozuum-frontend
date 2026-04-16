@@ -1,6 +1,5 @@
-// src/servicos/api.ts
 import axios from "axios";
-import { IUser, IVehicle, IProposal, IReview, IVehicleImage } from "../types"; // Regra: Types Globais
+import { IUser, IVehicle, IProposal, IReview, IVehicleImage } from "../types";
 
 export const API_BASE_URL = "http://localhost:3333";
 
@@ -8,12 +7,10 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Interceptor para injetar o token JWT automaticamente em rotas autenticadas
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
-      // Garante que o Bearer esteja sempre com o espaçamento correto
       config.headers.Authorization = `Bearer ${token.trim()}`;
     }
     return config;
@@ -23,12 +20,10 @@ api.interceptors.request.use(
   },
 );
 
-// Adicionamos também um interceptor de RESPOSTA para lidar com expiração de token
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Se o token for inválido/expirado, desloga o usuário automaticamente
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
@@ -52,7 +47,6 @@ export const createUser = async (data: IUser): Promise<IUser> => {
   return res.data;
 };
 
-// Paginação incluída conforme requisito da rubrica
 export const getAllUsers = async (
   page = 1,
   limit = 10,
@@ -111,7 +105,6 @@ export const addVehicleImage = async (
   vehicleId: string,
   data: FormData,
 ): Promise<IVehicleImage> => {
-  // A rota agora segue o padrão: /vehicles/:id/images
   const res = await api.post(`/vehicles/${vehicleId}/images`, data);
   return res.data;
 };

@@ -1,10 +1,9 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUser } from "../servicos/api";
-// @ts-ignore - Mantido para garantir que não haverá erro de importação no seu ambiente
+// @ts-ignore
 import "../styles/RegisterPage.css";
 
-// 1. Tipagem Forte: Evita o uso de 'any'
 interface IFormErrors {
   name?: string;
   email?: string;
@@ -32,13 +31,11 @@ export default function RegisterPage() {
   const [globalError, setGlobalError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Tipagem do evento de mudança de input
   const handle = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  // ─── Validação Matemática de CPF (Garante os 0,66 pts da Rubrica) ──────────
   const isValidCPF = (cpf: string): boolean => {
     cpf = cpf.replace(/[^\d]+/g, "");
     if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) return false;
@@ -54,13 +51,11 @@ export default function RegisterPage() {
     );
   };
 
-  // ─── Validações Locais ───────────────────────────────────────────────────
   const validate = (): IFormErrors => {
     const newErrors: IFormErrors = {};
 
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório.";
 
-    // Regra da Rubrica: Validação de E-mail (Regex)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
       newErrors.email = "Digite um e-mail válido. Ex: joao@gmail.com";
@@ -82,7 +77,6 @@ export default function RegisterPage() {
       if (age < 18) newErrors.birthDate = "Você precisa ter 18 anos ou mais.";
     }
 
-    // Validação de Nível de Senha
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(form.password)) {
@@ -122,11 +116,9 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const { confirmPassword, ...payload } = form;
-      // Removendo a formatação do CPF antes de enviar para o Backend
       payload.cpf = payload.cpf.replace(/[^\d]+/g, "");
 
       await createUser(payload);
-      // Regra da Rubrica: Redirecionar após cadastro
       navigate("/login");
     } catch (err: any) {
       const msg = err?.response?.data?.error || err.message;

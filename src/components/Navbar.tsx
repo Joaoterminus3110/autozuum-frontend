@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-// @ts-ignore - Mantido para evitar o falso positivo do CRA com ficheiros CSS
+// @ts-ignore
 import "../styles/Navbar.css";
 import { AuthContext } from "../contexts/AuthContext";
 
@@ -8,10 +8,9 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { currentUser, handleLogout } = useContext(AuthContext);
 
-  // Tipagem do retorno da função (void = não retorna nenhum valor)
   const handleSair = (): void => {
-    handleLogout(); // Limpa o localStorage e o usuário no Contexto
-    navigate("/"); // Joga o usuário para a Home
+    handleLogout();
+    navigate("/");
   };
 
   return (

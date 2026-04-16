@@ -5,13 +5,13 @@ import {
   updateVehicle,
   getVehicleById,
   deleteVehicle,
-  getImageUrl, // <-- Importado para corrigir o bug da imagem local
+  getImageUrl,
 } from "../servicos/api";
 import api from "../servicos/api";
 // @ts-ignore
 import "../styles/VehicleFormPage.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { IVehicleImage } from "../types"; // Importando tipo global
+import { IVehicleImage } from "../types";
 
 const FEATURES: string[] = [
   "Airbag",
@@ -158,19 +158,17 @@ export default function VehicleFormPage() {
         navigate(`/veiculo/${vehicleId}`);
       }
     } catch (err: any) {
-      // 👇 AQUI ESTÁ O TRATAMENTO DE ERRO PROFISSIONAL
       console.error("Erro na requisição:", err);
 
-      // Verifica se o erro veio da resposta do Axios (Backend)
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error); // Exibe a mensagem real do Backend
-      }
-      // Se for um erro de validação do próprio banco de dados (ex: Sequelize)
-      else if (err.response && err.response.data && err.response.data.message) {
+      } else if (
+        err.response &&
+        err.response.data &&
+        err.response.data.message
+      ) {
         setError(err.response.data.message);
-      }
-      // Fallback para caso o servidor esteja fora do ar
-      else {
+      } else {
         setError(
           "Não foi possível conectar ao servidor. Tente novamente mais tarde.",
         );
@@ -191,7 +189,6 @@ export default function VehicleFormPage() {
       const formData = new FormData();
       formData.append("image", file);
 
-      // 👇 AQUI ESTÁ A MÁGICA: Atualizado para a nova rota do Backend
       const res = await api.post(
         `/vehicles/${savedVehicleId}/images`,
         formData,
@@ -213,7 +210,7 @@ export default function VehicleFormPage() {
     if (!window.confirm("Excluir esta foto?")) return;
 
     try {
-      await deleteVehicle(imageId); // Ajuste caso a rota de deletar imagem seja diferente no seu backend
+      await deleteVehicle(imageId);
       setImages((prev) => prev.filter((img) => img.id !== imageId));
     } catch {
       alert("Erro ao excluir foto.");
@@ -480,7 +477,6 @@ export default function VehicleFormPage() {
   );
 }
 
-// Tipagem do Componente exclusivo da página separado em função (Cumpre o requisito de Componentização)
 interface ImageSectionProps {
   images: IVehicleImage[];
   onUpload: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -504,7 +500,6 @@ function ImageSection({
         <div className="vehicle-form-img-grid">
           {images.map((img) => (
             <div key={img.id} className="vehicle-form-img-item">
-              {/* Uso do helper de API para garantir o caminho dinâmico da imagem */}
               <img
                 src={getImageUrl(img.url) || ""}
                 alt="foto do veículo"

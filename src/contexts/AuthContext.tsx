@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import {
   createContext,
   useState,
@@ -10,7 +9,7 @@ import { IUser } from "../types/index";
 
 interface AuthContextType {
   currentUser: IUser | null;
-  setCurrentUser: (user: IUser | null) => void; // Adicionado para permitir atualizações parciais
+  setCurrentUser: (user: IUser | null) => void;
   handleLogin: (userData: IUser, token: string) => void;
   handleLogout: () => void;
 }
@@ -23,7 +22,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Logout memorizado para evitar loops em interceptors
   const handleLogout = useCallback(() => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -37,7 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user && token) {
       try {
         const parsedUser = JSON.parse(user);
-        // Regra Tech Forge: Validamos se o objeto tem o ID antes de setar
         if (parsedUser && (parsedUser.id || parsedUser._id)) {
           setCurrentUser(parsedUser);
         } else {

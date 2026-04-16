@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api, { getImageUrl } from "../servicos/api";
-// @ts-ignore - Mantido para evitar o falso positivo do CRA com CSS
+// @ts-ignore
 import "../styles/ProposalDetailPage.css";
 import { IProposal, IVehicle, IUser } from "../types";
 
-// Extensão da interface para incluir os dados que vêm "populados" do banco de dados
 interface IProposalDetail extends Omit<IProposal, "buyer"> {
   buyer?: IUser;
   offeredVehicle?: IVehicle;
@@ -14,8 +13,6 @@ interface IProposalDetail extends Omit<IProposal, "buyer"> {
 export default function ProposalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Tipagem forte aplicada ao estado
   const [proposal, setProposal] = useState<IProposalDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -35,7 +32,6 @@ export default function ProposalDetailPage() {
       });
   }, [id, navigate]);
 
-  // Tipagem da decisão (ACCEPTED ou REJECTED)
   const handleDecision = async (decision: string) => {
     try {
       await api.patch(`/proposals/${id}/status`, { status: decision });

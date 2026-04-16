@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Regra da Rubrica: Validação de e-mail (regex) no Front
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -31,9 +30,8 @@ export default function LoginPage() {
     try {
       const res = await login(email, password);
       handleLogin(res.user, res.token);
-      navigate("/"); // Regra da Rubrica: Redirecionar para área logada
+      navigate("/");
     } catch (err: any) {
-      // Regra da Rubrica: Lidar com erros da API de forma amigável
       const apiMessage =
         err.response?.data?.error || "E-mail ou senha incorretos.";
       setError(apiMessage);

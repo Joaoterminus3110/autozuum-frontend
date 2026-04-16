@@ -1,5 +1,3 @@
-// src/types/index.ts
-
 export interface IUser {
   id?: string;
   name?: string;
@@ -10,7 +8,6 @@ export interface IUser {
   birthDate?: string | Date;
 }
 
-// Já vamos deixar as outras interfaces prontas para o seu 10
 export interface IVehicle {
   id?: string;
   brand: string;
@@ -29,8 +26,8 @@ export interface IVehicle {
   createdAt?: string | Date;
   updatedAt?: string | Date;
   images?: { id?: string; url: string }[];
-  user?: { name: string; email?: string }; // Dados do vendedor (útil para Perfil e Detalhes)
-  Buyer?: { name: string }; // Dados do comprador
+  user?: { name: string; email?: string };
+  Buyer?: { name: string };
 }
 
 export interface IProposal {
@@ -40,9 +37,9 @@ export interface IProposal {
   offeredVehicleId?: string;
   status?: string;
   message?: string;
-  buyerId?: string; // Adicionado para o select de venda
-  buyer?: { name: string; email?: string }; // Dados do comprador que fez a proposta
-  targetVehicle?: IVehicle; // Útil para listar as propostas no ProfilePage
+  buyerId?: string;
+  buyer?: { name: string; email?: string };
+  targetVehicle?: IVehicle;
 }
 
 export interface IReview {
@@ -52,7 +49,7 @@ export interface IReview {
   rating: number;
   comment?: string;
   createdAt?: string;
-  reviewer?: { name: string }; // Útil para exibir quem avaliou na tela de perfil
+  reviewer?: { name: string };
 }
 
 export interface IVehicleImage {

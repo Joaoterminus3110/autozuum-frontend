@@ -1,11 +1,11 @@
 import { useState, useContext, ChangeEvent } from "react";
 import { getVehicles } from "../servicos/api";
 import VehicleCard from "../components/VehicleCard";
-// @ts-ignore - Mantido para evitar o erro de importação de CSS no seu ambiente
+// @ts-ignore
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
-import { IVehicle } from "../types"; // Regra Tech Forge: Uso de interfaces globais
+import { IVehicle } from "../types";
 import { useEffect } from "react";
 
 function HeroBanner() {
@@ -52,7 +52,6 @@ function HeroBanner() {
   );
 }
 
-// ─── Tipagem do Componente de Filtros ─────────────────────────────────────────
 interface IFilters {
   search: string;
   location: string;
@@ -136,19 +135,14 @@ function SkeletonCard() {
   );
 }
 
-// ─── Componente Principal ───────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate();
-  const { currentUser } = useContext(AuthContext); // Buscando usuário diretamente do contexto
-
+  const { currentUser } = useContext(AuthContext);
   const [vehicles, setVehicles] = useState<IVehicle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Regra da Rúbrica: Paginação
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-
   const [filters, setFilters] = useState<IFilters>({
     search: "",
     location: "",
@@ -168,7 +162,6 @@ export default function Home() {
 
       setVehicles(fetchedVehicles);
 
-      // Usamos apenas o 'total' que o TS já conhece e calculamos as páginas
       if (data.total) {
         setTotalPages(Math.ceil(data.total / 12));
       } else {
@@ -183,10 +176,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchVehicles(currentPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  // Aplicação dos filtros locais na lista já carregada
   const filtered = vehicles
     .filter((v) => {
       const q = filters.search.toLowerCase();
@@ -284,7 +275,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Botão de Paginação */}
         {!loading && !error && totalPages > 1 && (
           <div
             style={{

@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 
-// Importação de Páginas (Separadas na pasta /pages como pede a rubrica)
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -9,8 +8,6 @@ import VehicleDetailPage from "./pages/VehicleDetailPage";
 import VehicleFormPage from "./pages/VehicleFormPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProposalDetailPage from "./pages/ProposalDetailPage";
-
-// Importação de Componentes (Separados na pasta /components)
 import Navbar from "./components/Navbar";
 import PrivateRoute from "./routes/PrivateRoute";
 
